@@ -1,0 +1,4 @@
+.idea
+ent/*
+!ent/schema
+!ent/generate.go
