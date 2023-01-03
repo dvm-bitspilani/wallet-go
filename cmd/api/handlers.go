@@ -2,17 +2,12 @@ package main
 
 import (
 	"context"
-	"net/http"
-	"strconv"
-	"time"
-
 	"dvm.wallet/harsh/ent/user"
 	"dvm.wallet/harsh/internal/password"
 	"dvm.wallet/harsh/internal/request"
 	"dvm.wallet/harsh/internal/response"
 	"dvm.wallet/harsh/internal/validator"
-
-	"github.com/pascaldekloe/jwt"
+	"net/http"
 )
 
 func (app *application) status(w http.ResponseWriter, r *http.Request) {
@@ -112,26 +107,10 @@ func (app *application) createAuthenticationToken(w http.ResponseWriter, r *http
 		return
 	}
 
-	var claims jwt.Claims
-	claims.Subject = strconv.Itoa(user.ID)
-
-	expiry := time.Now().Add(24 * time.Hour)
-	claims.Issued = jwt.NewNumericTime(time.Now())
-	claims.NotBefore = jwt.NewNumericTime(time.Now())
-	claims.Expires = jwt.NewNumericTime(expiry)
-
-	claims.Issuer = app.config.baseURL
-	claims.Audiences = []string{app.config.baseURL}
-
-	jwtBytes, err := claims.HMACSign(jwt.HS256, []byte(app.config.jwt.secretKey))
+	data, err := generate_jwt_token(user.ID, app.config.baseURL, app.config.jwt.secretKey)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
-	}
-
-	data := map[string]string{
-		"AuthenticationToken":       string(jwtBytes),
-		"AuthenticationTokenExpiry": expiry.Format(time.RFC3339),
 	}
 
 	err = response.JSON(w, http.StatusOK, data)
