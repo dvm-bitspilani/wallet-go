@@ -1,6 +1,7 @@
 package main
 
 import (
+	"dvm.wallet/harsh/ent"
 	"flag"
 	"fmt"
 	"log"
@@ -34,7 +35,7 @@ type config struct {
 
 type application struct {
 	config config
-	db     *database.DB
+	client *ent.Client
 	logger *log.Logger
 }
 
@@ -43,7 +44,7 @@ func run(logger *log.Logger) error {
 
 	flag.StringVar(&cfg.baseURL, "base-url", "http://localhost:4444", "base URL for the application")
 	flag.IntVar(&cfg.httpPort, "http-port", 4444, "port to listen on for HTTP requests")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "user:pass@localhost:5432/db", "postgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "host=127.0.0.1 port=5431 user=postgres dbname=wallet password=postgres", "ent postgreSQL DSN")
 	flag.BoolVar(&cfg.db.automigrate, "db-automigrate", true, "run migrations on startup")
 	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret-key", "rbztegymvi2bxjdh2tftkvd7b44z5akg", "secret key for JWT authentication")
 	flag.BoolVar(&cfg.version, "version", false, "display version and exit")
@@ -55,15 +56,15 @@ func run(logger *log.Logger) error {
 		return nil
 	}
 
-	db, err := database.New(cfg.db.dsn, cfg.db.automigrate)
+	client, err := database.New(cfg.db.dsn, cfg.db.automigrate)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer client.Close()
 
 	app := &application{
 		config: cfg,
-		db:     db,
+		client: client,
 		logger: logger,
 	}
 
