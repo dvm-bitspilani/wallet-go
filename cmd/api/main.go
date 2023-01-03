@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"dvm.wallet/harsh/ent"
+	"dvm.wallet/harsh/internal/password"
 	"flag"
 	"fmt"
 	"log"
@@ -44,7 +46,7 @@ func run(logger *log.Logger) error {
 
 	flag.StringVar(&cfg.baseURL, "base-url", "http://localhost:4444", "base URL for the application")
 	flag.IntVar(&cfg.httpPort, "http-port", 4444, "port to listen on for HTTP requests")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "host=127.0.0.1 port=5431 user=postgres dbname=wallet password=postgres", "ent postgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "host=127.0.0.1 port=5431 user=postgres dbname=wallet password=postgres sslmode=disable", "ent postgreSQL DSN")
 	flag.BoolVar(&cfg.db.automigrate, "db-automigrate", true, "run migrations on startup")
 	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret-key", "rbztegymvi2bxjdh2tftkvd7b44z5akg", "secret key for JWT authentication")
 	flag.BoolVar(&cfg.version, "version", false, "display version and exit")
@@ -67,6 +69,14 @@ func run(logger *log.Logger) error {
 		client: client,
 		logger: logger,
 	}
-
+	//logger.Println(password.Hash("harsh"))
+	ctx := context.Background()
+	pass, err := password.Hash("harsh")
+	logger.Println(client.User.Create().
+		SetUsername("harsh").
+		SetEmail("harsh@gmail.com").
+		SetPassword(pass).
+		SetName("Harsh Singh").
+		Save(ctx))
 	return app.serveHTTP()
 }

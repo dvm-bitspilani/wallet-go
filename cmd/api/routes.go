@@ -17,8 +17,8 @@ func (app *application) routes() http.Handler {
 
 	mux.HandleFunc("/status", app.status).Methods("GET")
 
-	mux.HandleFunc("/users", app.createUser).Methods("POST")
-	mux.HandleFunc("/authentication-tokens", app.createAuthenticationToken).Methods("POST")
+	//mux.HandleFunc("/users", app.createUser).Methods("POST")
+	mux.HandleFunc("/login", app.createAuthenticationToken).Methods("POST")
 
 	authenticatedRoutes := mux.NewRoute().Subrouter()
 	authenticatedRoutes.Use(app.requireAuthenticatedUser)

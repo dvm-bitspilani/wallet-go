@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
+	"dvm.wallet/harsh/ent"
 	"net/http"
-
-	"dvm.wallet/harsh/internal/database"
 )
 
 type contextKey string
@@ -13,7 +12,7 @@ const (
 	authenticatedUserContextKey = contextKey("authenticatedUser")
 )
 
-func contextSetAuthenticatedUser(r *http.Request, user *database.User) *http.Request {
+func contextSetAuthenticatedUser(r *http.Request, user *ent.User) *http.Request {
 	ctx := context.WithValue(r.Context(), authenticatedUserContextKey, user)
 	return r.WithContext(ctx)
 }

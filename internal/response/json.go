@@ -10,7 +10,7 @@ func JSON(w http.ResponseWriter, status int, data any) error {
 }
 
 func JSONWithHeaders(w http.ResponseWriter, status int, data any, headers http.Header) error {
-	js, err := json.MarshalIndent(data, "", "\t")
+	js, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}

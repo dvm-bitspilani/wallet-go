@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
+	"dvm.wallet/harsh/ent/user"
 	"fmt"
+	"github.com/pascaldekloe/jwt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pascaldekloe/jwt"
 )
 
 func (app *application) recoverPanic(next http.Handler) http.Handler {
@@ -60,8 +61,8 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 					app.serverError(w, r, err)
 					return
 				}
-
-				user, err := app.db.GetUser(userID)
+				ctx := context.Background()
+				user, err := app.client.User.Query().Where(user.ID(userID)).Only(ctx)
 				if err != nil {
 					app.serverError(w, r, err)
 					return
