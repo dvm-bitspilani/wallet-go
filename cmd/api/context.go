@@ -17,8 +17,8 @@ func contextSetAuthenticatedUser(r *http.Request, user *ent.User) *http.Request 
 	return r.WithContext(ctx)
 }
 
-func contextGetAuthenticatedUser(r *http.Request) *database.User {
-	user, ok := r.Context().Value(authenticatedUserContextKey).(*database.User)
+func contextGetAuthenticatedUser(r *http.Request) *ent.User {
+	user, ok := r.Context().Value(authenticatedUserContextKey).(*ent.User)
 	if !ok {
 		return nil
 	}
