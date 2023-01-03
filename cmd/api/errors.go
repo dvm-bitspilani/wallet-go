@@ -59,3 +59,7 @@ func (app *application) invalidAuthenticationToken(w http.ResponseWriter, r *htt
 func (app *application) authenticationRequired(w http.ResponseWriter, r *http.Request) {
 	app.errorMessage(w, r, http.StatusUnauthorized, "You must be authenticated to access this resource", nil)
 }
+
+func (app *application) invalidCredentials(w http.ResponseWriter, r *http.Request) {
+	app.errorMessage(w, r, http.StatusUnauthorized, "Invalid Credentials", nil)
+}

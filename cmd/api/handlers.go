@@ -71,7 +71,7 @@ func (app *application) status(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) createAuthenticationToken(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		username  string              `json:"username"`
+		Username  string              `json:"username"`
 		Password  string              `json:"password"`
 		Validator validator.Validator `json:"-"`
 	}
@@ -82,13 +82,13 @@ func (app *application) createAuthenticationToken(w http.ResponseWriter, r *http
 		return
 	}
 	ctx := context.Background()
-	user, err := app.client.User.Query().Where(user.Username(input.username)).Only(ctx)
+	user, err := app.client.User.Query().Where(user.Username(input.Username)).Only(ctx)
 	if err != nil {
-		app.serverError(w, r, err)
+		app.invalidCredentials(w, r)
 		return
 	}
 
-	input.Validator.CheckField(input.username != "", "username", "Username is required")
+	input.Validator.CheckField(input.Username != "", "username", "Username is required")
 	input.Validator.CheckField(user != nil, "username", "Username could not be found")
 
 	if user != nil {
