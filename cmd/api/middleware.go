@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/cmd/api/errors"
 	"dvm.wallet/harsh/ent/user"
 	"fmt"
 	"github.com/pascaldekloe/jwt"
@@ -11,82 +13,90 @@ import (
 	"time"
 )
 
-func (app *application) recoverPanic(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				app.serverError(w, r, fmt.Errorf("%s", err))
-			}
-		}()
+// We take advantage of factory functions here to create middlewares for us. This helps us to inject dependencies while
+// following the middleware signature constraints.
 
-		next.ServeHTTP(w, r)
-	})
+func newRecoverPanic(app *config.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if err := recover(); err != nil {
+					errors.ServerError(w, r, fmt.Errorf("%s", err), app)
+				}
+			}()
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-func (app *application) authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Vary", "Authorization")
+func newAuthenticate(app *config.Application) func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Vary", "Authorization")
 
-		authorizationHeader := r.Header.Get("Authorization")
+			authorizationHeader := r.Header.Get("Authorization")
 
-		if authorizationHeader != "" {
-			headerParts := strings.Split(authorizationHeader, " ")
+			if authorizationHeader != "" {
+				headerParts := strings.Split(authorizationHeader, " ")
 
-			if len(headerParts) == 2 && headerParts[0] == "Bearer" {
-				token := headerParts[1]
+				if len(headerParts) == 2 && headerParts[0] == "Bearer" {
+					token := headerParts[1]
 
-				claims, err := jwt.HMACCheck([]byte(token), []byte(app.config.jwt.secretKey))
-				if err != nil {
-					app.invalidAuthenticationToken(w, r)
-					return
-				}
+					claims, err := jwt.HMACCheck([]byte(token), []byte(app.Config.Jwt.SecretKey))
+					if err != nil {
+						errors.InvalidAuthenticationToken(w, r, app)
+						return
+					}
 
-				if !claims.Valid(time.Now()) {
-					app.invalidAuthenticationToken(w, r)
-					return
-				}
+					if !claims.Valid(time.Now()) {
+						errors.InvalidAuthenticationToken(w, r, app)
+						return
+					}
 
-				if claims.Issuer != app.config.baseURL {
-					app.invalidAuthenticationToken(w, r)
-					return
-				}
+					if claims.Issuer != app.Config.BaseURL {
+						errors.InvalidAuthenticationToken(w, r, app)
+						return
+					}
 
-				if !claims.AcceptAudience(app.config.baseURL) {
-					app.invalidAuthenticationToken(w, r)
-					return
-				}
+					if !claims.AcceptAudience(app.Config.BaseURL) {
+						errors.InvalidAuthenticationToken(w, r, app)
+						return
+					}
 
-				userID, err := strconv.Atoi(claims.Subject)
-				if err != nil {
-					app.serverError(w, r, err)
-					return
-				}
-				ctx := context.Background()
-				user, err := app.client.User.Query().Where(user.ID(userID)).Only(ctx)
-				if err != nil {
-					app.serverError(w, r, err)
-					return
-				}
+					userID, err := strconv.Atoi(claims.Subject)
+					if err != nil {
+						errors.ServerError(w, r, err, app)
+						return
+					}
+					ctx := context.Background()
+					user, err := app.Client.User.Query().Where(user.ID(userID)).Only(ctx)
+					if err != nil {
+						errors.ServerError(w, r, err, app)
+						return
+					}
 
-				if user != nil {
-					r = contextSetAuthenticatedUser(r, user)
+					if user != nil {
+						r = contextSetAuthenticatedUser(r, user)
+					}
 				}
 			}
-		}
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authenticatedUser := contextGetAuthenticatedUser(r)
+func newRequireAuthenticatedUser(app *config.Application) func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authenticatedUser := contextGetAuthenticatedUser(r)
 
-		if authenticatedUser == nil {
-			app.authenticationRequired(w, r)
-			return
-		}
+			if authenticatedUser == nil {
+				errors.AuthenticationRequired(w, r, app)
+				return
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
