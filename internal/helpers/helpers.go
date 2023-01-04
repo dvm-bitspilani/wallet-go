@@ -1,4 +1,4 @@
-package wallet
+package helpers
 
 import (
 	"github.com/pascaldekloe/jwt"

@@ -1,4 +1,4 @@
-package wallet
+package main
 
 import (
 	"dvm.wallet/harsh/cmd/api/config"

@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"context"
-	wallet "dvm.wallet/harsh/cmd/api"
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/cmd/api/errors"
 	"dvm.wallet/harsh/ent/user"
+	"dvm.wallet/harsh/internal/helpers"
 	"dvm.wallet/harsh/internal/password"
 	"dvm.wallet/harsh/internal/request"
 	"dvm.wallet/harsh/internal/response"
@@ -52,7 +52,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data, err := wallet.Generate_jwt_token(user.ID, app.Config.BaseURL, app.Config.Jwt.SecretKey)
+		data, err := helpers.Generate_jwt_token(user.ID, app.Config.BaseURL, app.Config.Jwt.SecretKey)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
