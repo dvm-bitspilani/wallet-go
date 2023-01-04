@@ -1,7 +1,8 @@
-package main
+package wallet
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,11 +18,11 @@ const (
 	defaultWriteTimeout = 30 * time.Second
 )
 
-func (app *application) serveHTTP() error {
+func serveHTTP(app *config.Application) error {
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", app.config.httpPort),
-		Handler:      app.routes(),
-		ErrorLog:     app.logger,
+		Addr:         fmt.Sprintf(":%d", app.Config.HttpPort),
+		Handler:      routes(app),
+		ErrorLog:     app.Logger,
 		IdleTimeout:  defaultIdleTimeout,
 		ReadTimeout:  defaultReadTimeout,
 		WriteTimeout: defaultWriteTimeout,
@@ -40,7 +41,7 @@ func (app *application) serveHTTP() error {
 		shutdownErrorChan <- srv.Shutdown(ctx)
 	}()
 
-	app.logger.Printf("starting server on %s", srv.Addr)
+	app.Logger.Printf("starting server on %s", srv.Addr)
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
@@ -52,7 +53,7 @@ func (app *application) serveHTTP() error {
 		return err
 	}
 
-	app.logger.Print("stopped server on %s", srv.Addr)
+	app.Logger.Print("stopped server on %s", srv.Addr)
 
 	return nil
 }
