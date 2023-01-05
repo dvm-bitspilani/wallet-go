@@ -24,6 +24,6 @@ func (OrderShell) Fields() []ent.Field {
 func (OrderShell) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("wallet", Wallet.Type).Ref("shells").Unique(),
-		edge.To("order", Order.Type),
+		edge.To("orders", Order.Type),
 	}
 }

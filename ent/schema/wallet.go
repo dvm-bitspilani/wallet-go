@@ -25,7 +25,8 @@ func (Wallet) Fields() []ent.Field {
 func (Wallet) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).Ref("wallet").Unique().Required(),
-		//edge.To("source", Transactions.Type).,
+		edge.To("source_transactions", Transactions.Type),
+		edge.To("destination_transactions", Transactions.Type),
 		edge.To("shells", OrderShell.Type),
 	}
 }
