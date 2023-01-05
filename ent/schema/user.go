@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"time"
@@ -30,5 +31,11 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("wallet", Wallet.Type).Unique(),
+		edge.To("teller", Teller.Type).Unique(),
+		edge.To("transactions", Transactions.Type),
+		//edge.To("pg_transactions"),
+		edge.To("vendor", Vendor.Type).Unique(),
+	}
 }
