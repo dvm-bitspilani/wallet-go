@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"dvm.wallet/harsh/cmd/api/config"
-	"dvm.wallet/harsh/internal/password"
 	"flag"
 	"fmt"
 	"log"
@@ -51,13 +49,13 @@ func run(logger *log.Logger) error {
 		Logger: logger,
 	}
 	//logger.Println(password.Hash("harsh"))
-	ctx := context.Background()
-	pass, err := password.Hash("harsh")
-	logger.Println(client.User.Create().
-		SetUsername("harsh").
-		SetEmail("harsh@gmail.com").
-		SetPassword(pass).
-		SetName("Harsh Singh").
-		Save(ctx))
+	//ctx := context.Background()
+	//pass, err := password.Hash("harsh")
+	//logger.Println(client.User.Create().
+	//	SetUsername("harsh").
+	//	SetEmail("harsh@gmail.com").
+	//	SetPassword(pass).
+	//	SetName("Harsh Singh").
+	//	Save(ctx))
 	return serveHTTP(app)
 }
