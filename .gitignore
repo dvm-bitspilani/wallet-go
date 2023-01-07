@@ -2,3 +2,8 @@
 ent/*
 !ent/schema
 !ent/generate.go
+
+dev/
+./.env.db
+helpers/websockets.go
+internal/asynq

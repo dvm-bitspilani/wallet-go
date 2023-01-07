@@ -18,7 +18,7 @@ func NewUserOps(ctx context.Context, app *config.Application) *UserOps {
 	}
 }
 
-func (r *UserOps) disable(user ent.User) error {
+func (r *UserOps) Disable(user ent.User) error {
 	_, err := user.Update().SetDisabled(true).Save(r.ctx)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (r *UserOps) disable(user ent.User) error {
 	return nil
 }
 
-func (r *UserOps) enable(user ent.User) error {
+func (r *UserOps) Enable(user ent.User) error {
 	_, err := user.Update().SetDisabled(false).Save(r.ctx)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (r *UserOps) enable(user ent.User) error {
 	return nil
 }
 
-func (r *UserOps) getOrCreateWallet(user ent.User) (*ent.Wallet, error) {
+func (r *UserOps) GetOrCreateWallet(user ent.User) (*ent.Wallet, error) {
 	wallet, err := user.QueryWallet().Only(r.ctx)
 	if err != nil {
 		wallet, err = r.client.Wallet.Create().SetUser(&user).Save(r.ctx)

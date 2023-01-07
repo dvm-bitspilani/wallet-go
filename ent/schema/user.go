@@ -27,7 +27,7 @@ func (User) Fields() []ent.Field {
 		field.Time("created").
 			Default(time.Now),
 		field.Bool("disabled").Default(false),
-		field.Enum("occupation").Values("bitsian", "participant", "vendor", "teller").Default("participant"),
+		field.Enum("occupation").Values("bitsian", "participant", "vendor", "teller", "manager").Default("participant"),
 	}
 }
 

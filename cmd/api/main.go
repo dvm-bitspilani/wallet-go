@@ -48,12 +48,11 @@ func run(logger *log.Logger) error {
 		Client: client,
 		Logger: logger,
 	}
-	//logger.Println(password.Hash("harsh"))
 	//ctx := context.Background()
 	//pass, err := password.Hash("harsh")
 	//logger.Println(client.User.Create().
-	//	SetUsername("harsh").
-	//	SetEmail("harsh@gmail.com").
+	//	SetUsername("f20211725").
+	//	SetEmail("f20211725@pilani.bits-pilani.ac.in").
 	//	SetPassword(pass).
 	//	SetName("Harsh Singh").
 	//	Save(ctx))

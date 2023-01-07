@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func Generate_jwt_token(userID int, baseURL string, secretKey string) (map[string]string, error) {
+func GenerateJwtToken(userID int, baseURL string, secretKey string) (map[string]string, error) {
 	var claims jwt.Claims
 	claims.Subject = strconv.Itoa(userID)
 

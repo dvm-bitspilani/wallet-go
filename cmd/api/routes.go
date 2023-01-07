@@ -22,6 +22,9 @@ func routes(app *config.Application) http.Handler {
 
 	mux.HandleFunc("/status", handlers.Status(app)).Methods("GET")
 
+	// For websockets
+	//mux.HandleFunc("/ws", helpers.WsEndpoint)
+
 	//mux.HandleFunc("/users", app.createUser).Methods("POST")
 	mux.HandleFunc("/login", handlers.Login(app)).Methods("POST")
 
