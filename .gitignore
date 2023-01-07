@@ -4,6 +4,6 @@ ent/*
 !ent/generate.go
 
 dev/
-./.env.db
-helpers/websockets.go
+.env.db
 internal/asynq
+/internal/helpers/websockets.go
