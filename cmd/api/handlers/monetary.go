@@ -30,7 +30,6 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			errors.BadRequest(w, r, err, app)
 			return
 		}
-		// TODO:	get teller user somehow by
 		targetUser, err := app.Client.User.Query().Where(user.QrCode(usrUuid)).Only(r.Context())
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, "User not found with this QR code", nil, app)
