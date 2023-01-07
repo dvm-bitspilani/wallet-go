@@ -26,12 +26,17 @@ func routes(app *config.Application) http.Handler {
 	//mux.HandleFunc("/ws", helpers.WsEndpoint)
 
 	//mux.HandleFunc("/users", app.createUser).Methods("POST")
-	mux.HandleFunc("/login", handlers.Login(app)).Methods("POST")
+
+	// Auth Routes
+	mux.HandleFunc("/auth", handlers.Login(app)).Methods("POST")
 
 	authenticatedRoutes := mux.NewRoute().Subrouter()
 
 	requireAuthenticatedUser := newRequireAuthenticatedUser(app)
 	authenticatedRoutes.Use(requireAuthenticatedUser)
+
+	// Montary Routes
+	authenticatedRoutes.HandleFunc("/monetory/add/cash", handlers.AddCash(app)).Methods("POST")
 
 	//authenticatedRoutes.HandleFunc("/protected", app.protected).Methods("GET")
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/cmd/api/context"
 	"dvm.wallet/harsh/cmd/api/errors"
 	"dvm.wallet/harsh/ent/user"
 	"fmt"
@@ -76,7 +77,7 @@ func newAuthenticate(app *config.Application) func(handler http.Handler) http.Ha
 					}
 
 					if user != nil {
-						r = contextSetAuthenticatedUser(r, user)
+						r = context_config.ContextSetAuthenticatedUser(r, user)
 					}
 				}
 			}
@@ -89,7 +90,7 @@ func newAuthenticate(app *config.Application) func(handler http.Handler) http.Ha
 func newRequireAuthenticatedUser(app *config.Application) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authenticatedUser := contextGetAuthenticatedUser(r)
+			authenticatedUser := context_config.ContextGetAuthenticatedUser(r)
 
 			if authenticatedUser == nil {
 				errors.AuthenticationRequired(w, r, app)

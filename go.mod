@@ -35,6 +35,7 @@ require (
 	github.com/hibiken/asynq v0.24.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
