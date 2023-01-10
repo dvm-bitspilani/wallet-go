@@ -22,19 +22,39 @@ func NewTellerOps(ctx context.Context, client *ent.Client) *TellerOps {
 func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*ent.Transactions, error) {
 	if teller.Edges.User.Disabled == true {
 		err := fmt.Errorf("teller %s is disabled", teller.Edges.User.Username)
+		//err := exceptions.Exception{Message: fmt.Sprintf("teller %s is disabled", teller.Edges.User.Username), Status: 403}
 		return nil, err
 	}
 	if teller.Edges.User.Occupation == "bitsian" {
 		err := fmt.Errorf("cash additions to BITSian wallets is not allowed")
+		//err := exceptions.Exception{Message: "cash additions to BITSian wallets is not allowed", Status: 403}
 		return nil, err
 	}
-
-	// TODO:	Transaction generate_and_perform
-	transaction, err := GenerateAndPerform(amount, helpers.TRANSFER, teller.Edges.User, user, r.ctx, r.client)
+	transaction, err := GenerateAndPerform(amount, helpers.ADD_CASH, teller.Edges.User, user, r.ctx, r.client)
 	if err != nil {
 		return nil, err
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	// update_balance
+	// TODO:	update_balance
+	return transaction, nil
+}
+
+func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*ent.Transactions, error) {
+	if user.Occupation != "bitsian" {
+		err := fmt.Errorf("Only bitsians can add money via SWD")
+		//err := exceptions.Exception{Message: "Only bitsians can add money via SWD", Status: 403}
+		return nil, err
+	}
+	if teller.Edges.User.Username != "SWD" {
+		err := fmt.Errorf("Only the SWD teller may add money via SWD")
+		//err := exceptions.Exception{Message: "Only the SWD teller may add money via SWD", Status: 403}
+		return nil, err
+	}
+	transaction, err := GenerateAndPerform(amount, helpers.ADD_SWD, teller.Edges.User, user, r.ctx, r.client)
+	if err != nil {
+		return nil, err
+	}
+	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
+	//TODO:		update_balance
 	return transaction, nil
 }

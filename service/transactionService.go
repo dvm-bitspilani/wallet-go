@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 type TransactionOps struct {
@@ -14,10 +14,10 @@ type TransactionOps struct {
 	client *ent.Client
 }
 
-func NewTransactionOps(ctx context.Context, app *config.Application) *TransactionOps {
+func NewTransactionOps(ctx context.Context, app *ent.Client) *TransactionOps {
 	return &TransactionOps{
 		ctx:    ctx,
-		client: app.Client,
+		client: app,
 	}
 }
 
@@ -35,21 +35,20 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 
 	if src == dst {
 		err := fmt.Errorf("Reflexive transfers are not allowed")
+		//err := exceptions.Exception{Message: "Reflexive transfers are not allowed", Status: 403}
 		return nil, err
 	}
 	if src_user.Disabled {
 		err := fmt.Errorf("%s has been disabled", src_user.Username)
+		//err := exceptions.Exception{Message: fmt.Sprintf("%s has been disabled", src_user.Username), Status: 403}
 		return nil, err
 	}
 	if dst_user.Disabled {
 		err := fmt.Errorf("%s has been disabled", dst_user.Username)
+		//err := exceptions.Exception{Message: fmt.Sprintf("%s has been disabled", src_user.Username), Status: 403}
 		return nil, err
 	}
-	// TODO:
 	occupationPair := []string{src_user.Occupation.String(), dst_user.Occupation.String()}
-	//if !(validator.In(occupation_pair, helpers.GetValidTransactionPairs()...)) {
-	//
-	//}
 	validOccupationPair := false // It's probably a good idea to prevent any transaction than to allow *any* transaction
 	for _, pair := range helpers.GetValidTransactionPairs() {
 		if reflect.DeepEqual(occupationPair, pair) {
@@ -60,6 +59,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 	if !validOccupationPair {
 		if !(src_user.Username == "SWD" && dst_user.Occupation == "bitsian") {
 			err := fmt.Errorf("Transaction forbidden: %s", occupationPair)
+			//err := exceptions.Exception{Message: fmt.Sprintf("Transaction forbidden: %s", occupationPair), Status: 403}
 			return nil, err
 		}
 	}
@@ -75,4 +75,13 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 		SetSource(src).
 		SetDestination(dst).
 		SaveX(ctx), nil
+}
+
+func (r *TransactionOps) To_dict(txn *ent.Transactions) map[string]string {
+	return map[string]string{
+		"id":        strconv.Itoa(txn.ID),
+		"amount":    strconv.Itoa(txn.Amount),
+		"kind":      txn.Kind.String(),
+		"timestamp": txn.Timestamp.String(),
+	}
 }

@@ -14,6 +14,9 @@ import (
 // I have changed the signatures of lot of these functions to inject dependencies, in cases where this signature needs
 // to follow a constraint we'll take help of factory functions to create our functions and inject dependencies simultaneously.
 
+// TODO:	A big issue that I've identified is that my 'custom' errors will cause a lot of inconsistency in response status
+//			This is potentially breaking as App relies completely on status messages instead of actual messages. This needs to be fixed.
+
 func ErrorMessage(w http.ResponseWriter, r *http.Request, status int, message string, headers http.Header, app *config.Application) {
 	message = strings.ToUpper(message[:1]) + message[1:]
 
