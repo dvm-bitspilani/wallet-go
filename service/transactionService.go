@@ -34,7 +34,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 	}
 
 	if src == dst {
-		err := fmt.Errorf("Reflexive transfers are not allowed")
+		err := fmt.Errorf("reflexive transfers are not allowed")
 		//err := exceptions.Exception{Message: "Reflexive transfers are not allowed", Status: 403}
 		return nil, err
 	}
