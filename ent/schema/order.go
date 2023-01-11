@@ -18,9 +18,9 @@ func (Order) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("price").Default(0).NonNegative(),
 		field.Enum("status").GoType(helpers.Status(0)),
-		field.Int("otp").DefaultFunc(func() int {
-			return 0 // TODO: Implement a OTP generating function
-		}).NonNegative(),
+		field.String("otp").DefaultFunc(func() string {
+			return "1234" // TODO: Implement a OTP generating function
+		}),
 		field.Bool("otp_seen").Default(false),
 		field.Time("timestamp").Default(time.Now),
 		field.Time("ready_timestamp").Optional(),
