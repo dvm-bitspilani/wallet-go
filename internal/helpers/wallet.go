@@ -7,6 +7,15 @@ import (
 	"dvm.wallet/harsh/ent/user"
 )
 
+type BalanceType int
+
+const (
+	SWD          BalanceType = 1
+	CASH         BalanceType = 2
+	PG           BalanceType = 3
+	TRANSFER_BAL BalanceType = 4
+)
+
 // GetValidTransactionPairs check with seniors if this is the combo they're looking for
 func GetValidTransactionPairs() [][]string {
 	return [][]string{
