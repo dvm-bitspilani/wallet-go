@@ -41,12 +41,12 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 
 func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*ent.Transactions, error) {
 	if user.Occupation != "bitsian" {
-		err := fmt.Errorf("Only bitsians can add money via SWD")
+		err := fmt.Errorf("only bitsians can add money via SWD")
 		//err := exceptions.Exception{Message: "Only bitsians can add money via SWD", Status: 403}
 		return nil, err
 	}
 	if teller.Edges.User.Username != "SWD" {
-		err := fmt.Errorf("Only the SWD teller may add money via SWD")
+		err := fmt.Errorf("only the SWD teller may add money via SWD")
 		//err := exceptions.Exception{Message: "Only the SWD teller may add money via SWD", Status: 403}
 		return nil, err
 	}
@@ -58,3 +58,5 @@ func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*e
 	//TODO:		update_balance
 	return transaction, nil
 }
+
+// TODO: 	Add by PG
