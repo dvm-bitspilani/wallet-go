@@ -65,8 +65,8 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 	}
 
 	if !(src_user.Occupation == "teller") {
-		// src.deduct()
-		// dst.add()
+		// TODO:	src.deduct()
+		// TODO:	dst.add()
 	}
 	return client.Transactions.Create().
 		SetUser(dst_user).
