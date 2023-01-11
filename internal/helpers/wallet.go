@@ -49,3 +49,19 @@ func GetOrCreateSwdTeller(app *config.Application, ctx context.Context) *ent.Tel
 	}
 	return swdTeller
 }
+
+func GetBalanceFromTransactionType(txn Txn_type) BalanceType {
+	switch txn {
+	case ADD_SWD:
+		return SWD
+	case ADD_CASH:
+		return CASH
+	case ADD_PG:
+		return PG
+	case TRANSFER:
+		return TRANSFER_BAL
+	case PURCHASE:
+		return TRANSFER_BAL
+	}
+	return 0 // can be potentially dangerous
+}

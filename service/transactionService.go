@@ -63,9 +63,16 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 			return nil, err
 		}
 	}
-
+	walletOps := NewWalletOps(ctx, client)
 	if !(src_user.Occupation == "teller") {
-		// TODO:	src.deduct()
+		err = walletOps.Deduct(src, amt)
+		if err != nil {
+			return nil, err
+		}
+		err = walletOps.Add(dst, amt, helpers.GetBalanceFromTransactionType(kind))
+		if err != nil {
+			return nil, err
+		}
 		// TODO:	dst.add()
 	}
 	return client.Transactions.Create().
