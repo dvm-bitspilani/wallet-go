@@ -59,7 +59,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 	return int(order.Status), nil // not sure if this direct conversion works
 }
 
-func (r *VendorOps) Decline(order *ent.Order) error {
+func (r *OrderOps) Decline(order *ent.Order) error {
 	if order.Status == helpers.DECLINED {
 		return errors.New("vendor has already declined the order, cannot re-decline an order")
 	}
@@ -71,7 +71,7 @@ func (r *VendorOps) Decline(order *ent.Order) error {
 	return nil
 }
 
-func (r *VendorOps) CalculateTotalPrice(order *ent.Order) int {
+func (r *OrderOps) CalculateTotalPrice(order *ent.Order) int {
 	price := 0
 	items := order.QueryIteminstances().AllX(r.ctx)
 	ItemOps := NewItemOps(r.ctx, r.client)
