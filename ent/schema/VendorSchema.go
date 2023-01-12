@@ -7,13 +7,13 @@ import (
 	"net/url"
 )
 
-// Vendor holds the schema definition for the Vendor entity.
-type Vendor struct {
+// VendorSchema holds the schema definition for the VendorSchema entity.
+type VendorSchema struct {
 	ent.Schema
 }
 
-// Fields of the Vendor.
-func (Vendor) Fields() []ent.Field {
+// Fields of the VendorSchema.
+func (VendorSchema) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.Text("address").Optional(),
@@ -23,10 +23,10 @@ func (Vendor) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Vendor.
-func (Vendor) Edges() []ent.Edge {
+// Edges of the VendorSchema.
+func (VendorSchema) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).Ref("vendor").Required().Unique(),
+		edge.From("user", User.Type).Ref("VendorSchema").Required().Unique(),
 		edge.To("items", Item.Type),
 		edge.To("orders", Order.Type),
 	}

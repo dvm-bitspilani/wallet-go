@@ -25,7 +25,7 @@ func (Item) Fields() []ent.Field {
 // Edges of the Item.
 func (Item) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("vendor", Vendor.Type).Ref("items").Unique(),
+		edge.From("VendorSchema", VendorSchema.Type).Ref("items").Unique(),
 		edge.To("iteminstances", ItemInstance.Type),
 	}
 }

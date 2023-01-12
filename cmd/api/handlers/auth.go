@@ -105,7 +105,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 					// but it's probably worth it to handle that case some time in the future.
 					case "participant":
 						category = 1
-					case "vendor":
+					case "VendorSchema":
 						category = 2
 					case "teller":
 						category = 2
@@ -170,7 +170,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				"AuthenticationTokenExpiry": jwt["AuthenticationTokenExpiry"],
 				"user_id":                   strconv.Itoa(userObject.ID),
 			}
-			if userObject.Occupation == "vendor" {
+			if userObject.Occupation == "VendorSchema" {
 				// TODO:	websocket implementation here
 				// 			implement put_vendor_orders
 				//			(Also check if its really required)

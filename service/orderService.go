@@ -19,7 +19,7 @@ type OrderOps struct {
 type OrderStruct struct {
 	OrderId     int                  `json:"order_id"`
 	Shell       int                  `json:"shell"`
-	Vendor      VendorStruct         `json:"vendor"`
+	Vendor      VendorStruct         `json:"VendorSchema"`
 	Items       []ItemInstanceStruct `json:"items"`
 	Transaction int                  `json:"transaction"`
 	Price       int                  `json:"price"`
@@ -54,7 +54,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			SetAmount(order.Price).
 			SetKind(helpers.PURCHASE).
 			SetSource(usr.Edges.Wallet).
-			SetDestination(usr.Edges.Vendor.Edges.User.Edges.Wallet).
+			SetDestination(usr.Edges.VendorSchema.Edges.User.Edges.Wallet).
 			SaveX(r.ctx)
 		order.Update().SetTransaction(transaction).SetTimestamp(time.Now()).SaveX(r.ctx)
 		_ = walletOps.Add(usr.Edges.Wallet, order.Price, database.TRANSFER_BAL)
@@ -73,10 +73,10 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 
 func (r *OrderOps) Decline(order *ent.Order) error {
 	if order.Status == helpers.DECLINED {
-		return errors.New("vendor has already declined the order, cannot re-decline an order")
+		return errors.New("VendorSchema has already declined the order, cannot re-decline an order")
 	}
 	if validator.In(order.Status, helpers.ACCEPTED, helpers.READY, helpers.FINISHED) {
-		return errors.New("vendor has already accepted the order, cannot decline now")
+		return errors.New("VendorSchema has already accepted the order, cannot decline now")
 	}
 	order.Update().SetStatus(helpers.DECLINED).SaveX(r.ctx)
 	// TODO:	update_order_status
@@ -94,7 +94,7 @@ func (r *OrderOps) CalculateTotalPrice(order *ent.Order) int {
 }
 
 func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
-	//vendor := map[string]string{
+	//VendorSchema := map[string]string{
 	//	"id":        strconv.Itoa(order.Edges.Vendor.ID),
 	//	"name":      order.Edges.Vendor.Name,
 	//	"image_url": order.Edges.Vendor.ImageURL.String(),
@@ -103,7 +103,7 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 	//return map[string]string{
 	//	"order_id": strconv.Itoa(order.ID),
 	//	"shell":    strconv.Itoa(order.Edges.Shell.ID),
-	//	//"vendor":      vendor,
+	//	//"VendorSchema":      VendorSchema,
 	//	//"items":       items,
 	//	"transaction": strconv.Itoa(order.Edges.Transaction.ID),
 	//	"price":       strconv.Itoa(order.Price),
@@ -121,9 +121,9 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 		})
 	}
 	vendor := VendorStruct{
-		Id:       order.Edges.Vendor.ID,
-		Name:     order.Edges.Vendor.Name,
-		ImageUrl: *order.Edges.Vendor.ImageURL,
+		Id:       order.Edges.VendorSchema.ID,
+		Name:     order.Edges.VendorSchema.Name,
+		ImageUrl: *order.Edges.VendorSchema.ImageURL,
 	}
 
 	return OrderStruct{

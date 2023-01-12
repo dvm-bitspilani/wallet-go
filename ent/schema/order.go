@@ -34,7 +34,7 @@ func (Order) Fields() []ent.Field {
 func (Order) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("shell", OrderShell.Type).Ref("orders").Unique(),
-		edge.From("vendor", Vendor.Type).Ref("orders").Unique(),
+		edge.From("VendorSchema", VendorSchema.Type).Ref("orders").Unique(),
 		edge.From("transaction", Transactions.Type).Ref("orders").Unique(),
 		edge.To("iteminstances", ItemInstance.Type),
 	}

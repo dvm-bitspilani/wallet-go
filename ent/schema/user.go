@@ -27,7 +27,7 @@ func (User) Fields() []ent.Field {
 		field.Time("created").
 			Default(time.Now),
 		field.Bool("disabled").Default(false),
-		field.Enum("occupation").Values("bitsian", "participant", "vendor", "teller", "manager").Default("participant"),
+		field.Enum("occupation").Values("bitsian", "participant", "VendorSchema", "teller", "manager").Default("participant"),
 	}
 }
 
@@ -38,6 +38,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("teller", Teller.Type).Unique(),
 		edge.To("transactions", Transactions.Type),
 		//edge.To("pg_transactions"),
-		edge.To("vendor", Vendor.Type).Unique(),
+		edge.To("VendorSchema", VendorSchema.Type).Unique(),
 	}
 }

@@ -23,9 +23,9 @@ const (
 func GetValidTransactionPairs() [][]string {
 	return [][]string{
 		{"bitsian", "bitsian"},
-		{"bitsian", "vendor"},
+		{"bitsian", "VendorSchema"},
 		{"participant", "participant"},
-		{"participant", "vendor"},
+		{"participant", "VendorSchema"},
 		{"teller", "participant"},
 	}
 }
