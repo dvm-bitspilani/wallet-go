@@ -10,6 +10,13 @@ type ItemInstanceOps struct {
 	client *ent.Client
 }
 
+type ItemInstanceStruct struct {
+	Id        int    `json:"id"`
+	Name      string `json:"name"`
+	Quantity  int    `json:"quantity"`
+	UnitPrice int    `json:"unit_price"`
+}
+
 func NewItemInstance(ctx context.Context, client *ent.Client) *ItemOps {
 	return &ItemOps{
 		ctx:    ctx,

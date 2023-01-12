@@ -7,13 +7,36 @@ import (
 	"dvm.wallet/harsh/internal/validator"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 )
 
 type OrderOps struct {
 	ctx    context.Context
 	client *ent.Client
+}
+
+//return map[string]string{
+//"order_id": strconv.Itoa(order.ID),
+//"shell":    strconv.Itoa(order.Edges.Shell.ID),
+////"vendor":      vendor,
+////"items":       items,
+//"transaction": strconv.Itoa(order.Edges.Transaction.ID),
+//"price":       strconv.Itoa(order.Price),
+//"status":      order.Status.String(),
+//"otp":         strconv.Itoa(order.Otp), //TODO:	change otp to string
+//"otp_seen":    strconv.FormatBool(order.OtpSeen),
+//}
+
+type OrderStruct struct {
+	OrderId     int                  `json:"order_id"`
+	Shell       int                  `json:"shell"`
+	Vendor      VendorStruct         `json:"vendor"`
+	Items       []ItemInstanceStruct `json:"items"`
+	Transaction int                  `json:"transaction"`
+	Price       int                  `json:"price"`
+	Status      helpers.Status       `json:"status"`
+	Otp         int                  `json:"otp,"`
+	OtpSeen     bool                 `json:"otp_seen"`
 }
 
 func NewOrderOps(ctx context.Context, client *ent.Client) *OrderOps {
@@ -81,23 +104,49 @@ func (r *OrderOps) CalculateTotalPrice(order *ent.Order) int {
 	return price
 }
 
-func (r *OrderOps) ToDict(order *ent.Order) map[string]string {
+func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 	//vendor := map[string]string{
 	//	"id":        strconv.Itoa(order.Edges.Vendor.ID),
 	//	"name":      order.Edges.Vendor.Name,
 	//	"image_url": order.Edges.Vendor.ImageURL.String(),
 	//}
 	//items := make([]map[string]interface{}, len())
-	return map[string]string{
-		"order_id": strconv.Itoa(order.ID),
-		"shell":    strconv.Itoa(order.Edges.Shell.ID),
-		//"vendor":      vendor,
-		//"items":       items,
-		"transaction": strconv.Itoa(order.Edges.Transaction.ID),
-		"price":       strconv.Itoa(order.Price),
-		"status":      order.Status.String(),
-		"otp":         strconv.Itoa(order.Otp), //TODO:	change otp to string
-		"otp_seen":    strconv.FormatBool(order.OtpSeen),
+	//return map[string]string{
+	//	"order_id": strconv.Itoa(order.ID),
+	//	"shell":    strconv.Itoa(order.Edges.Shell.ID),
+	//	//"vendor":      vendor,
+	//	//"items":       items,
+	//	"transaction": strconv.Itoa(order.Edges.Transaction.ID),
+	//	"price":       strconv.Itoa(order.Price),
+	//	"status":      order.Status.String(),
+	//	"otp":         strconv.Itoa(order.Otp), //TODO:	change otp to string
+	//	"otp_seen":    strconv.FormatBool(order.OtpSeen),
+
+	var items []ItemInstanceStruct
+	for _, item := range order.QueryIteminstances().AllX(r.ctx) {
+		items = append(items, ItemInstanceStruct{
+			Id:        item.ID,
+			Name:      item.Edges.Item.Name,
+			Quantity:  item.Quantity,
+			UnitPrice: item.PricePerQuantity,
+		})
+	}
+	vendor := VendorStruct{
+		Id:       order.Edges.Vendor.ID,
+		Name:     order.Edges.Vendor.Name,
+		ImageUrl: *order.Edges.Vendor.ImageURL,
+	}
+
+	return OrderStruct{
+		OrderId:     order.ID,
+		Shell:       order.Edges.Shell.ID,
+		Vendor:      vendor,
+		Items:       items,
+		Transaction: order.Edges.Transaction.ID,
+		Price:       order.Price,
+		Status:      order.Status,
+		Otp:         order.Otp,
+		OtpSeen:     order.OtpSeen,
 	}
 }
 
