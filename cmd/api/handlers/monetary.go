@@ -17,6 +17,7 @@ import (
 )
 
 // TODO:	implement maintenance mode
+// TODO:	refactor all map json to struct json
 
 func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
