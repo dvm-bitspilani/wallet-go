@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/ent"
+	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
 	"dvm.wallet/harsh/internal/validator"
 	"errors"
@@ -68,7 +69,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			SetDestination(usr.Edges.Vendor.Edges.User.Edges.Wallet).
 			SaveX(r.ctx)
 		order.Update().SetTransaction(transaction).SetTimestamp(time.Now()).SaveX(r.ctx)
-		_ = walletOps.Add(usr.Edges.Wallet, order.Price, helpers.TRANSFER_BAL)
+		_ = walletOps.Add(usr.Edges.Wallet, order.Price, database.TRANSFER_BAL)
 	} else {
 		if order.Status == helpers.DECLINED {
 			order.Update().SetDeclinedTimestamp(time.Now()).SaveX(r.ctx)

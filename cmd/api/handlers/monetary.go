@@ -6,7 +6,7 @@ import (
 	"dvm.wallet/harsh/cmd/api/errors"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/user"
-	"dvm.wallet/harsh/internal/helpers"
+	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/request"
 	"dvm.wallet/harsh/internal/response"
 	"dvm.wallet/harsh/service"
@@ -88,7 +88,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		swd_teller := helpers.GetOrCreateSwdTeller(app, r.Context())
+		swd_teller := database.GetOrCreateSwdTeller(app, r.Context())
 		tellerOps := service.NewTellerOps(r.Context(), app.Client)
 		_, err := tellerOps.AddBySwd(swd_teller, usr, input.Amount)
 		if err != nil {

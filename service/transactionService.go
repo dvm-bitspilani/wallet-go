@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/ent"
+	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
 	"reflect"
@@ -50,7 +51,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 	}
 	occupationPair := []string{src_user.Occupation.String(), dst_user.Occupation.String()}
 	validOccupationPair := false // It's probably a good idea to prevent any transaction than to allow *any* transaction
-	for _, pair := range helpers.GetValidTransactionPairs() {
+	for _, pair := range database.GetValidTransactionPairs() {
 		if reflect.DeepEqual(occupationPair, pair) {
 			validOccupationPair = true
 			break
@@ -69,7 +70,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, src_user *ent.User, dst_
 		if err != nil {
 			return nil, err
 		}
-		err = walletOps.Add(dst, amt, helpers.GetBalanceFromTransactionType(kind))
+		err = walletOps.Add(dst, amt, database.GetBalanceFromTransactionType(kind))
 		if err != nil {
 			return nil, err
 		}

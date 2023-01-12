@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/ent"
+	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
 	"reflect"
@@ -67,7 +68,7 @@ func (r *UserOps) Transfer(user *ent.User, target *ent.User, amount int) (*ent.T
 	}
 	occupationPair := []string{user.Occupation.String(), target.Occupation.String()}
 	validOccupationPair := false // It's probably a good idea to prevent any transaction than to allow *any* transaction
-	for _, pair := range helpers.GetValidTransactionPairs() {
+	for _, pair := range database.GetValidTransactionPairs() {
 		if reflect.DeepEqual(occupationPair, pair) {
 			validOccupationPair = true
 			break

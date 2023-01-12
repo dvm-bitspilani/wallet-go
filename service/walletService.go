@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/ent"
-	"dvm.wallet/harsh/internal/helpers"
+	"dvm.wallet/harsh/internal/database"
 	"errors"
 	"fmt"
 	"strconv"
@@ -27,21 +27,21 @@ func (r *walletOps) Balance(wallet *ent.Wallet) int {
 
 // TODO: update_balance by overiding the save method
 
-func (r *walletOps) Add(wallet *ent.Wallet, amount int, balanceType helpers.BalanceType) error {
+func (r *walletOps) Add(wallet *ent.Wallet, amount int, balanceType database.BalanceType) error {
 	if amount < 0 {
 		err := fmt.Errorf("amount to add to wallet cannot be negative")
 		return err
 	}
-	if balanceType == helpers.SWD {
+	if balanceType == database.SWD {
 		wallet.Update().AddSwd(amount).SaveX(r.ctx)
 		return nil
-	} else if balanceType == helpers.CASH {
+	} else if balanceType == database.CASH {
 		wallet.Update().AddCash(amount).SaveX(r.ctx)
 		return nil
-	} else if balanceType == helpers.PG {
+	} else if balanceType == database.PG {
 		wallet.Update().AddPg(amount).SaveX(r.ctx)
 		return nil
-	} else if balanceType == helpers.TRANSFER_BAL {
+	} else if balanceType == database.TRANSFER_BAL {
 		wallet.Update().AddTransfers(amount).SaveX(r.ctx)
 		return nil
 	} else {

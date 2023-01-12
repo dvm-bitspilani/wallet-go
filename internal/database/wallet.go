@@ -1,10 +1,11 @@
-package helpers
+package database
 
 import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/user"
+	"dvm.wallet/harsh/internal/helpers"
 )
 
 // TODO:	Fix circular import issue with ent
@@ -50,17 +51,17 @@ func GetOrCreateSwdTeller(app *config.Application, ctx context.Context) *ent.Tel
 	return swdTeller
 }
 
-func GetBalanceFromTransactionType(txn Txn_type) BalanceType {
+func GetBalanceFromTransactionType(txn helpers.Txn_type) BalanceType {
 	switch txn {
-	case ADD_SWD:
+	case helpers.ADD_SWD:
 		return SWD
-	case ADD_CASH:
+	case helpers.ADD_CASH:
 		return CASH
-	case ADD_PG:
+	case helpers.ADD_PG:
 		return PG
-	case TRANSFER:
+	case helpers.TRANSFER:
 		return TRANSFER_BAL
-	case PURCHASE:
+	case helpers.PURCHASE:
 		return TRANSFER_BAL
 	}
 	return 0 // can be potentially dangerous
