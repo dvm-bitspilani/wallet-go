@@ -16,18 +16,6 @@ type OrderOps struct {
 	client *ent.Client
 }
 
-//return map[string]string{
-//"order_id": strconv.Itoa(order.ID),
-//"shell":    strconv.Itoa(order.Edges.Shell.ID),
-////"vendor":      vendor,
-////"items":       items,
-//"transaction": strconv.Itoa(order.Edges.Transaction.ID),
-//"price":       strconv.Itoa(order.Price),
-//"status":      order.Status.String(),
-//"otp":         strconv.Itoa(order.Otp), //TODO:	change otp to string
-//"otp_seen":    strconv.FormatBool(order.OtpSeen),
-//}
-
 type OrderStruct struct {
 	OrderId     int                  `json:"order_id"`
 	Shell       int                  `json:"shell"`
@@ -36,7 +24,7 @@ type OrderStruct struct {
 	Transaction int                  `json:"transaction"`
 	Price       int                  `json:"price"`
 	Status      helpers.Status       `json:"status"`
-	Otp         int                  `json:"otp,"`
+	Otp         string               `json:"otp,"`
 	OtpSeen     bool                 `json:"otp_seen"`
 }
 
