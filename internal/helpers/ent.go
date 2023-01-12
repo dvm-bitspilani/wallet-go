@@ -33,6 +33,22 @@ func (s Status) String() string {
 	return ""
 }
 
+func FromInt(num int) Status {
+	switch num {
+	case 0:
+		return PENDING
+	case 1:
+		return ACCEPTED
+	case 2:
+		return READY
+	case 3:
+		return FINISHED
+	case 4:
+		return DECLINED
+	}
+	return 0 // TODO:	check if this is right or not
+}
+
 // Values provides list valid values for Enum.
 func (s Status) Values() []string {
 	return []string{PENDING.String(), ACCEPTED.String(), READY.String(), FINISHED.String(), DECLINED.String()}
