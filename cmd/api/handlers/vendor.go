@@ -32,7 +32,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 		vendor := usr.Edges.VendorSchema
 		vars := mux.Vars(r)
 		status := vars["status"]
-
+		//check what empty vars does here
 		if status == "" {
 			orders := vendor.QueryOrders().AllX(r.Context())
 			orderOps := service.NewOrderOps(r.Context(), app.Client)
