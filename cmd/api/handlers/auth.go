@@ -123,7 +123,6 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			payload, err := idtoken.Validate(r.Context(), input.IdToken, "") //LOW:	Can't ise audience here, look into why
 			if err != nil {
 				//errors.InvalidCredentials(w, r, app)
-				app.Logger.Println(err)
 				errors.InvalidCredentials(w, r, app)
 				return
 			}
@@ -195,55 +194,3 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 
 	}
 }
-
-// func (app *application) protected(w http.ResponseWriter, r *http.Request) {
-//	w.Write([]byte("This is a protected handler"))
-//}
-
-//func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
-//	var input struct {
-//		Email     string              `json:"Email"`
-//		Password  string              `json:"Password"`
-//		Validator validator.Validator `json:"-"`
-//	}
-//
-//	err := request.DecodeJSON(w, r, &input)
-//	if err != nil {
-//		app.badRequest(w, r, err)
-//		return
-//	}
-//
-//	existingUser, err := app.db.GetUserByEmail(input.Email)
-//	if err != nil {
-//		app.serverError(w, r, err)
-//		return
-//	}
-//
-//	input.Validator.CheckField(input.Email != "", "Email", "Email is required")
-//	input.Validator.CheckField(validator.Matches(input.Email, validator.RgxEmail), "Email", "Must be a valid email address")
-//	input.Validator.CheckField(existingUser == nil, "Email", "Email is already in use")
-//
-//	input.Validator.CheckField(input.Password != "", "Password", "Password is required")
-//	input.Validator.CheckField(len(input.Password) >= 8, "Password", "Password is too short")
-//	input.Validator.CheckField(len(input.Password) <= 72, "Password", "Password is too long")
-//	input.Validator.CheckField(validator.NotIn(input.Password, password.CommonPasswords...), "Password", "Password is too common")
-//
-//	if input.Validator.HasErrors() {
-//		app.failedValidation(w, r, input.Validator)
-//		return
-//	}
-//
-//	hashedPassword, err := password.Hash(input.Password)
-//	if err != nil {
-//		app.serverError(w, r, err)
-//		return
-//	}
-//
-//	_, err = app.db.InsertUser(input.Email, hashedPassword)
-//	if err != nil {
-//		app.serverError(w, r, err)
-//		return
-//	}
-//
-//	w.WriteHeader(http.StatusNoContent)
-//}
