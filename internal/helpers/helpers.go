@@ -29,3 +29,13 @@ func GenerateJwtToken(userID int, baseURL string, secretKey string) (map[string]
 	}
 	return data, nil
 }
+
+type OrderActionOrderStruct struct {
+	ItemId   int `json:"item_id"`
+	Quantity int `json:"quantity"`
+}
+
+type OrderActionVendorStruct struct {
+	VendorId int                      `json:"vendor_id"`
+	Order    []OrderActionOrderStruct `json:"order"`
+}
