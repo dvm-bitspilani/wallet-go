@@ -74,7 +74,6 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 		if err != nil {
 			return nil, err
 		}
-		// TODO:	dst.add()
 	}
 	return client.Transactions.Create().
 		SetUser(dstUser).
