@@ -59,7 +59,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 	}
 	if !validOccupationPair {
 		if !(srcUser.Username == "SWD" && dstUser.Occupation == "bitsian") {
-			err := fmt.Errorf("Transaction forbidden: %s", occupationPair)
+			err := fmt.Errorf("transaction forbidden: %s", occupationPair)
 			//err := exceptions.Exception{Message: fmt.Sprintf("Transaction forbidden: %s", occupationPair), Status: 403}
 			return nil, err
 		}
@@ -84,7 +84,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 		SaveX(ctx), nil
 }
 
-func (r *TransactionOps) To_dict(txn *ent.Transactions) map[string]string {
+func (r *TransactionOps) ToDict(txn *ent.Transactions) map[string]string {
 	return map[string]string{
 		"id":        strconv.Itoa(txn.ID),
 		"amount":    strconv.Itoa(txn.Amount),

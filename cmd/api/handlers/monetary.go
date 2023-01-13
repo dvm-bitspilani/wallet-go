@@ -206,7 +206,7 @@ func TransactionHistory(app *config.Application) func(w http.ResponseWriter, r *
 		txns := make([]map[string]string, len(transactions))
 		transactionOps := service.NewTransactionOps(r.Context(), app.Client)
 		for _, txn := range transactions {
-			txn_dict := transactionOps.To_dict(txn)
+			txn_dict := transactionOps.ToDict(txn)
 			txns = append(txns, txn_dict)
 		}
 
