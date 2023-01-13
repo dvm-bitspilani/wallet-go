@@ -23,13 +23,13 @@ func NewTransactionOps(ctx context.Context, app *ent.Client) *TransactionOps {
 }
 
 func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUser *ent.User, ctx context.Context, client *ent.Client) (*ent.Transactions, error) {
-	userops := NewUserOps(ctx, client)
+	userOps := NewUserOps(ctx, client)
 
-	src, err := userops.GetOrCreateWallet(srcUser)
+	src, err := userOps.GetOrCreateWallet(srcUser)
 	if err != nil {
 		return nil, err
 	}
-	dst, err := userops.GetOrCreateWallet(dstUser)
+	dst, err := userOps.GetOrCreateWallet(dstUser)
 	if err != nil {
 		return nil, err
 	}
