@@ -27,25 +27,25 @@ func (r *walletOps) Balance(wallet *ent.Wallet) int {
 
 // TODO: update_balance by overiding the save method
 
-func (r *walletOps) Add(wallet *ent.Wallet, amount int, balanceType database.BalanceType) error {
+func (r *walletOps) Add(wallet *ent.Wallet, amount int, balanceType database.BalanceType) (error, int) {
 	if amount < 0 {
 		err := fmt.Errorf("amount to add to wallet cannot be negative")
-		return err
+		return err, 400 // 400
 	}
 	if balanceType == database.SWD {
 		wallet.Update().AddSwd(amount).SaveX(r.ctx)
-		return nil
+		return nil, 0
 	} else if balanceType == database.CASH {
 		wallet.Update().AddCash(amount).SaveX(r.ctx)
-		return nil
+		return nil, 0
 	} else if balanceType == database.PG {
 		wallet.Update().AddPg(amount).SaveX(r.ctx)
-		return nil
+		return nil, 0
 	} else if balanceType == database.TRANSFER_BAL {
 		wallet.Update().AddTransfers(amount).SaveX(r.ctx)
-		return nil
+		return nil, 0
 	} else {
-		return errors.New("invalid addition of funds")
+		return errors.New("invalid addition of funds"), 0
 	}
 }
 
@@ -69,12 +69,12 @@ func (r *walletOps) AddAll(wallet *ent.Wallet, addDict map[string]int) {
 	wallet.Update().AddSwd(swd).AddCash(cash).AddPg(pg).AddTransfers(transfers).SaveX(r.ctx)
 }
 
-func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) error {
+func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 	if amount < 0 {
-		return errors.New("amount to deduct from the wallet cannot be negative")
+		return errors.New("amount to deduct from the wallet cannot be negative"), 400 // 400
 	}
 	if r.Balance(wallet) < amount {
-		return fmt.Errorf("%s's current balance is %d", wallet.Edges.User.Username, r.Balance(wallet))
+		return fmt.Errorf("%s's current balance is %d", wallet.Edges.User.Username, r.Balance(wallet)), 412 // 412
 	}
 	if wallet.Transfers < amount {
 		amount -= wallet.Transfers
@@ -95,7 +95,7 @@ func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) error {
 	} else {
 		wallet.Update().SetTransfers(-amount).SaveX(r.ctx)
 	}
-	return nil
+	return nil, 0
 }
 
 func (r *walletOps) ToDict(wallet *ent.Wallet) map[string]string {
