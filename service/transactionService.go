@@ -93,12 +93,6 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 }
 
 func (r *TransactionOps) ToDict(txn *ent.Transactions) *TransactionStruct {
-	//return map[string]string{
-	//	"id":        strconv.Itoa(txn.ID),
-	//	"amount":    strconv.Itoa(txn.Amount),
-	//	"kind":      txn.Kind.String(),
-	//	"timestamp": txn.Timestamp.String(),
-	//}
 	return &TransactionStruct{
 		Id:        txn.ID,
 		Amount:    txn.Amount,
