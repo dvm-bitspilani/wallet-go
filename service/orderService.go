@@ -35,15 +35,15 @@ func NewOrderOps(ctx context.Context, client *ent.Client) *OrderOps {
 	}
 }
 
-func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr *ent.User) (int, error) {
+func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr *ent.User) (int, error, int) {
 	if validator.In(order.Status, helpers.DECLINED, helpers.FINISHED) {
 		err := fmt.Errorf("maximum/final status achieved")
-		return 0, err
+		return 0, err, 412
 	}
 	if order.Status == helpers.READY {
 		if !order.OtpSeen {
 			err := fmt.Errorf("user has not yet hit see otp")
-			return 0, err
+			return 0, err, 412
 		}
 	}
 	order.Update().SetStatus(newStatus)
@@ -57,7 +57,10 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			SetDestination(usr.Edges.VendorSchema.Edges.User.Edges.Wallet).
 			SaveX(r.ctx)
 		order.Update().SetTransaction(transaction).SetTimestamp(time.Now()).SaveX(r.ctx)
-		_ = walletOps.Add(usr.Edges.Wallet, order.Price, database.TRANSFER_BAL)
+		err, statusCode := walletOps.Add(usr.Edges.Wallet, order.Price, database.TRANSFER_BAL)
+		if err != nil {
+			return 0, err, statusCode
+		}
 	} else {
 		if order.Status == helpers.DECLINED {
 			order.Update().SetDeclinedTimestamp(time.Now()).SaveX(r.ctx)
@@ -68,19 +71,19 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 		}
 	}
 	// TODO:	update_order_status
-	return int(order.Status), nil // not sure if this direct conversion works
+	return int(order.Status), nil, 0 // not sure if this direct conversion works
 }
 
-func (r *OrderOps) Decline(order *ent.Order) error {
+func (r *OrderOps) Decline(order *ent.Order) (error, int) {
 	if order.Status == helpers.DECLINED {
-		return errors.New("VendorSchema has already declined the order, cannot re-decline an order")
+		return errors.New("vendor has already declined the order, cannot re-decline an order"), 412
 	}
 	if validator.In(order.Status, helpers.ACCEPTED, helpers.READY, helpers.FINISHED) {
-		return errors.New("VendorSchema has already accepted the order, cannot decline now")
+		return errors.New("vendor has already accepted the order, cannot decline now"), 412
 	}
 	order.Update().SetStatus(helpers.DECLINED).SaveX(r.ctx)
 	// TODO:	update_order_status
-	return nil
+	return nil, 0
 }
 
 func (r *OrderOps) CalculateTotalPrice(order *ent.Order) int {
