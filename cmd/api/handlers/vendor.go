@@ -470,10 +470,14 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 func GetMenu(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		vendorId, err := strconv.Atoi(vars["vendor_id"])
-		if err != nil {
-			errors.BadRequest(w, r, err, app)
-			return
+		var vendorId int
+		var err error
+		if _, ok := vars["vendor_id"]; ok {
+			vendorId, err = strconv.Atoi(vars["vendor_id"])
+			if err != nil {
+				errors.BadRequest(w, r, err, app)
+				return
+			}
 		}
 		vendorObject, err := app.Client.VendorSchema.Query().Where(vendor.ID(vendorId)).Only(r.Context())
 		if err != nil {
@@ -568,6 +572,81 @@ func GetAllVendorsWithMenu(app *config.Application) func(http.ResponseWriter, *h
 			})
 		}
 		err := response.JSON(w, http.StatusOK, &data)
+		if err != nil {
+			errors.ServerError(w, r, err, app)
+			return
+		}
+	}
+}
+
+func GetVendor(app *config.Application) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		type menuItem struct {
+			Id          int    `json:"id"`
+			Name        string `json:"name"`
+			Price       int    `json:"price"`
+			Description string `json:"description"`
+			VendorId    int    `json:"vendor_id"`
+			IsVeg       bool   `json:"is_veg"`
+			//IsCombo     bool   `json:"is_combo"`
+			IsAvailable bool `json:"is_available"`
+		}
+		type vendorStruct struct {
+			ID          int        `json:"id"`
+			Name        string     `json:"name"`
+			ImageUrl    url.URL    `json:"image_url"`
+			Description string     `json:"description"`
+			Closed      bool       `json:"closed"`
+			Menu        []menuItem `json:"menu"`
+			Address     string     `json:"address"`
+		}
+		vars := mux.Vars(r)
+		var vendorId int
+		var err error
+		if _, ok := vars["vendor_id"]; ok {
+			vendorId, err = strconv.Atoi(vars["vendor_id"])
+			if err != nil {
+				errors.BadRequest(w, r, err, app)
+				return
+			}
+		}
+		vendorObject, err := app.Client.VendorSchema.Query().Where(vendor.ID(vendorId)).Only(r.Context())
+		if err != nil {
+			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Vendor with ID %d does not exist", vendorId), nil, app)
+			return
+		}
+		if vendorObject.Edges.User.Username == "PROF_SHOW" {
+			errors.ErrorMessage(w, r, 403, "Vendor is a Prof Show", nil, app)
+			return
+		}
+		if vendorObject.Closed {
+			errors.ErrorMessage(w, r, 412, "Vendor is closed", nil, app)
+			return
+		}
+
+		var menu []menuItem
+		for _, itemObj := range vendorObject.QueryItems().AllX(r.Context()) {
+			menu = append(menu, menuItem{
+				Id:          itemObj.ID,
+				Name:        itemObj.Name,
+				Price:       itemObj.BasePrice,
+				Description: itemObj.Description,
+				VendorId:    itemObj.Edges.VendorSchema.ID,
+				IsVeg:       itemObj.Veg,
+				IsAvailable: itemObj.Available,
+			})
+		}
+
+		data := vendorStruct{
+			ID:          vendorObject.ID,
+			Name:        vendorObject.Name,
+			ImageUrl:    *vendorObject.ImageURL,
+			Description: vendorObject.Description,
+			Closed:      vendorObject.Closed,
+			Menu:        menu,
+			Address:     vendorObject.Address,
+		}
+		err = response.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
