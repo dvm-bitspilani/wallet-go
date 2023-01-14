@@ -21,6 +21,7 @@ Make sure that you're in the root of the project directory, fetch the dependenci
 
 ```
 $ go mod tidy
+$ go generate ./ent
 $ go run ./cmd/api
 ```
 
