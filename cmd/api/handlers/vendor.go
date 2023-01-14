@@ -29,12 +29,12 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
 			return
 		}
-		vendor := usr.Edges.VendorSchema
+		vendorObj := usr.Edges.VendorSchema
 		vars := mux.Vars(r)
 		status := vars["status"]
 		//check what empty vars does here
 		if status == "" {
-			orders := vendor.QueryOrders().AllX(r.Context())
+			orders := vendorObj.QueryOrders().AllX(r.Context())
 			orderOps := service.NewOrderOps(r.Context(), app.Client)
 			var data []service.OrderStruct
 			for _, order := range orders {
@@ -53,7 +53,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 			"finished": helpers.FINISHED,
 			"declined": helpers.DECLINED,
 		}
-		orders := vendor.QueryOrders().Where(order.StatusEQ(conversionMap[status])).AllX(r.Context())
+		orders := vendorObj.QueryOrders().Where(order.StatusEQ(conversionMap[status])).AllX(r.Context())
 		orderOps := service.NewOrderOps(r.Context(), app.Client)
 		var data []service.OrderStruct
 		for _, order := range orders {
