@@ -37,8 +37,8 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 			orders := vendorObj.QueryOrders().AllX(r.Context())
 			orderOps := service.NewOrderOps(r.Context(), app.Client)
 			var data []service.OrderStruct
-			for _, order := range orders {
-				data = append(data, orderOps.ToDict(order))
+			for _, orderObj := range orders {
+				data = append(data, orderOps.ToDict(orderObj))
 			}
 			err := response.JSON(w, http.StatusOK, &data)
 			if err != nil {
@@ -56,8 +56,8 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 		orders := vendorObj.QueryOrders().Where(order.StatusEQ(conversionMap[status])).AllX(r.Context())
 		orderOps := service.NewOrderOps(r.Context(), app.Client)
 		var data []service.OrderStruct
-		for _, order := range orders {
-			data = append(data, orderOps.ToDict(order))
+		for _, orderObj := range orders {
+			data = append(data, orderOps.ToDict(orderObj))
 		}
 		err := response.JSON(w, http.StatusOK, &data)
 		if err != nil {
@@ -95,41 +95,41 @@ func GetOrderDetails(app *config.Application) func(http.ResponseWriter, *http.Re
 		}
 		usr := context_config.ContextGetAuthenticatedUser(r)
 
-		order, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
+		orderObj, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("no orders of ID %d found in the database", orderId), nil, app)
 			return
 		}
 
-		orderItems := order.QueryIteminstances().AllX(r.Context())
+		orderItems := orderObj.QueryIteminstances().AllX(r.Context())
 		//orderItemsList := make([]map[string]string, len(orderItems))
 
 		var orderItemsList []itemStruct
-		for _, item := range orderItems {
+		for _, orderItem := range orderItems {
 			orderItemsList = append(orderItemsList, itemStruct{
-				ItemId:     item.Edges.Item.ID,
-				Name:       item.Edges.Item.Name,
-				UnitPrice:  item.PricePerQuantity,
-				Quantity:   item.Quantity,
-				Veg:        item.Edges.Item.Veg,
-				TotalPrice: item.PricePerQuantity * item.Quantity,
+				ItemId:     orderItem.Edges.Item.ID,
+				Name:       orderItem.Edges.Item.Name,
+				UnitPrice:  orderItem.PricePerQuantity,
+				Quantity:   orderItem.Quantity,
+				Veg:        orderItem.Edges.Item.Veg,
+				TotalPrice: orderItem.PricePerQuantity * orderItem.Quantity,
 			})
 		}
 
 		orderDetails := OrderDetailStruct{
-			ShellId:    order.Edges.Shell.ID,
-			VendorName: order.Edges.VendorSchema.Name,
-			Status:     order.Status,
-			Otp:        order.Otp,
+			ShellId:    orderObj.Edges.Shell.ID,
+			VendorName: orderObj.Edges.VendorSchema.Name,
+			Status:     orderObj.Status,
+			Otp:        orderObj.Otp,
 			Items:      orderItemsList,
 		}
 		if usr.Occupation == "VendorSchema" {
-			if order.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
+			if orderObj.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
 				errors.ErrorMessage(w, r, 403, "The given order is not handled by requesting VendorSchema", nil, app)
 				return
 			}
 		} else {
-			if order.Edges.Shell.Edges.Wallet.Edges.User.ID != usr.ID {
+			if orderObj.Edges.Shell.Edges.Wallet.Edges.User.ID != usr.ID {
 				errors.ErrorMessage(w, r, 403, "This order was not placed by the requesting user", nil, app)
 				return
 			}
@@ -174,41 +174,41 @@ func GetOrderIdArrayDetails(app *config.Application) func(http.ResponseWriter, *
 				Items      []itemStruct   `json:"items"`
 			}
 
-			order, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
+			orderObj, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
 			if err != nil {
 				errors.ErrorMessage(w, r, 404, fmt.Sprintf("no orders of ID %d found in the database", orderId), nil, app)
 				return
 			}
 
-			orderItems := order.QueryIteminstances().AllX(r.Context())
+			orderItems := orderObj.QueryIteminstances().AllX(r.Context())
 			//orderItemsList := make([]map[string]string, len(orderItems))
 
 			var orderItemsList []itemStruct
-			for _, item := range orderItems {
+			for _, orderItem := range orderItems {
 				orderItemsList = append(orderItemsList, itemStruct{
-					ItemId:     item.Edges.Item.ID,
-					Name:       item.Edges.Item.Name,
-					UnitPrice:  item.PricePerQuantity,
-					Quantity:   item.Quantity,
-					Veg:        item.Edges.Item.Veg,
-					TotalPrice: item.PricePerQuantity * item.Quantity,
+					ItemId:     orderItem.Edges.Item.ID,
+					Name:       orderItem.Edges.Item.Name,
+					UnitPrice:  orderItem.PricePerQuantity,
+					Quantity:   orderItem.Quantity,
+					Veg:        orderItem.Edges.Item.Veg,
+					TotalPrice: orderItem.PricePerQuantity * orderItem.Quantity,
 				})
 			}
 
 			orderDetails := OrderDetailStruct{
-				ShellId:    order.Edges.Shell.ID,
-				VendorName: order.Edges.VendorSchema.Name,
-				Status:     order.Status,
-				Otp:        order.Otp,
+				ShellId:    orderObj.Edges.Shell.ID,
+				VendorName: orderObj.Edges.VendorSchema.Name,
+				Status:     orderObj.Status,
+				Otp:        orderObj.Otp,
 				Items:      orderItemsList,
 			}
 			if usr.Occupation == "VendorSchema" {
-				if order.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
+				if orderObj.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
 					errors.ErrorMessage(w, r, 403, "The given order is not handled by requesting VendorSchema", nil, app)
 					return
 				}
 			} else {
-				if order.Edges.Shell.Edges.Wallet.Edges.User.ID != usr.ID {
+				if orderObj.Edges.Shell.Edges.Wallet.Edges.User.ID != usr.ID {
 					errors.ErrorMessage(w, r, 403, "This order was not placed by the requesting user", nil, app)
 					return
 				}
@@ -292,12 +292,12 @@ func GetDayListEarnings(app *config.Application) func(http.ResponseWriter, *http
 			var dayEarnings int
 			var orderIdList []int
 			orders := usr.Edges.VendorSchema.QueryOrders().AllX(r.Context())
-			for _, order := range orders {
-				if order.Status == helpers.FINISHED {
-					totalEarnings += order.Price
-					if order.Edges.Shell.Timestamp.Day() == timestamp.Day() && order.Edges.Shell.Timestamp.Month() == timestamp.Month() {
-						dayEarnings += order.Price
-						orderIdList = append(orderIdList, order.ID)
+			for _, orderObj := range orders {
+				if orderObj.Status == helpers.FINISHED {
+					totalEarnings += orderObj.Price
+					if orderObj.Edges.Shell.Timestamp.Day() == timestamp.Day() && orderObj.Edges.Shell.Timestamp.Month() == timestamp.Month() {
+						dayEarnings += orderObj.Price
+						orderIdList = append(orderIdList, orderObj.ID)
 					}
 				}
 			}
@@ -341,19 +341,19 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			usr.Update().SetDisabled(true).SaveX(r.Context())
 		}
 
-		order, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
+		orderObj, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Order %d not found", orderId), nil, app)
 			return
 		}
 
-		if validator.In(input.NewStatus-int(order.Status), 0, 1) {
+		if validator.In(input.NewStatus-int(orderObj.Status), 0, 1) {
 			errors.ErrorMessage(w, r, 403, "Invalid action", nil, app)
 			return
 		}
 
 		orderOps := service.NewOrderOps(r.Context(), app.Client)
-		_, err = orderOps.ChangeStatus(order, helpers.FromInt(input.NewStatus), usr)
+		_, err = orderOps.ChangeStatus(orderObj, helpers.FromInt(input.NewStatus), usr)
 		if err != nil {
 			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
 			return
@@ -381,14 +381,14 @@ func DeclineOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			usr.Update().SetDisabled(true).SaveX(r.Context())
 		}
 
-		order, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
+		orderObj, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Order %d not found", orderId), nil, app)
 			return
 		}
 		orderOps := service.NewOrderOps(r.Context(), app.Client)
 
-		err = orderOps.Decline(order)
+		err = orderOps.Decline(orderObj)
 		if err != nil {
 			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
 			return
@@ -492,16 +492,16 @@ func GetMenu(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			IsAvailable bool `json:"is_available"`
 		}
 		var data []menuItem
-		for _, item := range vendorObject.QueryItems().AllX(r.Context()) {
+		for _, itemObj := range vendorObject.QueryItems().AllX(r.Context()) {
 			data = append(data, menuItem{
-				Id:          item.ID,
-				Name:        item.Name,
-				Price:       item.BasePrice,
-				Description: item.Description,
-				VendorId:    item.Edges.VendorSchema.ID,
-				IsVeg:       item.Veg,
+				Id:          itemObj.ID,
+				Name:        itemObj.Name,
+				Price:       itemObj.BasePrice,
+				Description: itemObj.Description,
+				VendorId:    itemObj.Edges.VendorSchema.ID,
+				IsVeg:       itemObj.Veg,
 				//IsCombo:     item,
-				IsAvailable: item.Available,
+				IsAvailable: itemObj.Available,
 			})
 		}
 		err = response.JSON(w, http.StatusOK, &data)
@@ -536,32 +536,32 @@ func GetAllVendorsWithMenu(app *config.Application) func(http.ResponseWriter, *h
 
 		var data []vendorStruct
 
-		for _, vendor := range app.Client.VendorSchema.Query().Where(vendor.HasUserWith(user.UsernameNEQ("PROF_SHOW"))).AllX(r.Context()) {
-			if vendor.Closed {
+		for _, vendorObj := range app.Client.VendorSchema.Query().Where(vendor.HasUserWith(user.UsernameNEQ("PROF_SHOW"))).AllX(r.Context()) {
+			if vendorObj.Closed {
 				continue
 			}
 
 			var menu []menuItem
-			for _, item := range vendor.QueryItems().AllX(r.Context()) {
+			for _, itemObj := range vendorObj.QueryItems().AllX(r.Context()) {
 				menu = append(menu, menuItem{
-					Id:          item.ID,
-					Name:        item.Name,
-					Price:       item.BasePrice,
-					Description: item.Description,
-					VendorId:    item.Edges.VendorSchema.ID,
-					IsVeg:       item.Veg,
-					IsAvailable: item.Available,
+					Id:          itemObj.ID,
+					Name:        itemObj.Name,
+					Price:       itemObj.BasePrice,
+					Description: itemObj.Description,
+					VendorId:    itemObj.Edges.VendorSchema.ID,
+					IsVeg:       itemObj.Veg,
+					IsAvailable: itemObj.Available,
 				})
 			}
 
 			data = append(data, vendorStruct{
-				ID:          vendor.ID,
-				Name:        vendor.Name,
-				ImageUrl:    *vendor.ImageURL,
-				Description: vendor.Description,
-				Closed:      vendor.Closed,
+				ID:          vendorObj.ID,
+				Name:        vendorObj.Name,
+				ImageUrl:    *vendorObj.ImageURL,
+				Description: vendorObj.Description,
+				Closed:      vendorObj.Closed,
 				Menu:        menu,
-				Address:     vendor.Address,
+				Address:     vendorObj.Address,
 			})
 		}
 		err := response.JSON(w, http.StatusOK, &data)
