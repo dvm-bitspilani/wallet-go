@@ -25,7 +25,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if !(usr.Occupation == "VendorSchema") {
+		if usr.Occupation != "Vendor" {
 			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
 			return
 		}
@@ -123,7 +123,7 @@ func GetOrderDetails(app *config.Application) func(http.ResponseWriter, *http.Re
 			Otp:        orderObj.Otp,
 			Items:      orderItemsList,
 		}
-		if usr.Occupation == "VendorSchema" {
+		if usr.Occupation == "vendor" {
 			if orderObj.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
 				errors.ErrorMessage(w, r, 403, "The given order is not handled by requesting VendorSchema", nil, app)
 				return
@@ -282,7 +282,7 @@ func GetDayListEarnings(app *config.Application) func(http.ResponseWriter, *http
 			return
 		}
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if usr.Occupation != "VendorSchema" {
+		if usr.Occupation != "vendor" {
 			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
 			return
 		}
@@ -337,8 +337,10 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 		}
 
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if !(usr.Occupation == "VendorSchema") {
+		if usr.Occupation != "vendor" {
 			usr.Update().SetDisabled(true).SaveX(r.Context())
+			errors.ErrorMessage(w, r, 403, "User is not a vendor, Disabled", nil, app)
+			return
 		}
 
 		orderObj, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
@@ -353,9 +355,9 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 		}
 
 		orderOps := service.NewOrderOps(r.Context(), app.Client)
-		_, err = orderOps.ChangeStatus(orderObj, helpers.FromInt(input.NewStatus), usr)
+		_, err, statusCode := orderOps.ChangeStatus(orderObj, helpers.FromInt(input.NewStatus), usr)
 		if err != nil {
-			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
+			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
 		//TODO:	Disable vendors if they're trying to access orders that do not belong to them
@@ -377,8 +379,10 @@ func DeclineOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 		}
 
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if !(usr.Occupation == "VendorSchema") {
+		if usr.Occupation != "vendor" {
 			usr.Update().SetDisabled(true).SaveX(r.Context())
+			errors.ErrorMessage(w, r, 403, "User is not a vendor, disabled", nil, app)
+			return
 		}
 
 		orderObj, err := app.Client.Order.Query().Where(order.ID(orderId)).Only(r.Context())
@@ -388,9 +392,9 @@ func DeclineOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 		}
 		orderOps := service.NewOrderOps(r.Context(), app.Client)
 
-		err = orderOps.Decline(orderObj)
+		err, statusCode := orderOps.Decline(orderObj)
 		if err != nil {
-			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
+			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
 		err = response.JSON(w, http.StatusOK, "Successfully Declined!")
@@ -404,7 +408,7 @@ func DeclineOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if usr.Occupation != "VendorSchema" {
+		if usr.Occupation != "vendor" {
 			usr.Update().SetDisabled(true).SaveX(r.Context())
 			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
 			return
@@ -454,13 +458,12 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 				updatedItem.Available = true
 				availabilityData.Items = append(availabilityData.Items, updatedItem)
 			}
-			err = response.JSON(w, http.StatusOK, &availabilityData)
-			if err != nil {
-				errors.ServerError(w, r, err, app)
-				return
-			}
 		}
-
+		err = response.JSON(w, http.StatusOK, &availabilityData)
+		if err != nil {
+			errors.ServerError(w, r, err, app)
+			return
+		}
 	}
 }
 
