@@ -133,7 +133,7 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 		}
 		transferMode = 1
 		if transferMode == 1 {
-			var err error //TODO:	Has to be a better way to solve this
+			var err error
 			targetUser, err = app.Client.User.Query().Where(user.QrCode(input.QrCode)).Only(r.Context())
 			if err != nil {
 				errors.ErrorMessage(w, r, 404, fmt.Sprintf("User not found with ID %d", input.UserId), nil, app)

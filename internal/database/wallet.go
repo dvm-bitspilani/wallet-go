@@ -8,8 +8,6 @@ import (
 	"dvm.wallet/harsh/internal/helpers"
 )
 
-// TODO:	Fix circular import issue with ent
-
 type BalanceType int
 
 const (
