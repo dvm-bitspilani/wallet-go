@@ -7,7 +7,7 @@ import (
 	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
 	"reflect"
-	"strconv"
+	"time"
 )
 
 type TransactionOps struct {
@@ -22,9 +22,12 @@ func NewTransactionOps(ctx context.Context, app *ent.Client) *TransactionOps {
 	}
 }
 
-//type TransactionStruct {
-//
-//}
+type TransactionStruct struct {
+	Id        int              `json:"id"`
+	Amount    int              `json:"amount"`
+	Kind      helpers.Txn_type `json:"kind"`
+	Timestamp time.Time        `json:"timestamp"`
+}
 
 func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUser *ent.User, ctx context.Context, client *ent.Client) (*ent.Transactions, error, int) {
 	var statusCode int
@@ -89,11 +92,17 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 		SaveX(ctx), nil, 0
 }
 
-func (r *TransactionOps) ToDict(txn *ent.Transactions) map[string]string {
-	return map[string]string{
-		"id":        strconv.Itoa(txn.ID),
-		"amount":    strconv.Itoa(txn.Amount),
-		"kind":      txn.Kind.String(),
-		"timestamp": txn.Timestamp.String(),
+func (r *TransactionOps) ToDict(txn *ent.Transactions) *TransactionStruct {
+	//return map[string]string{
+	//	"id":        strconv.Itoa(txn.ID),
+	//	"amount":    strconv.Itoa(txn.Amount),
+	//	"kind":      txn.Kind.String(),
+	//	"timestamp": txn.Timestamp.String(),
+	//}
+	return &TransactionStruct{
+		Id:        txn.ID,
+		Amount:    txn.Amount,
+		Kind:      txn.Kind,
+		Timestamp: txn.Timestamp,
 	}
 }
