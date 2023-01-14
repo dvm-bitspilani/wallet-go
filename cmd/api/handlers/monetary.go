@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"net/http"
-	"strconv"
 )
 
 // TODO:	implement maintenance mode
@@ -21,6 +20,7 @@ import (
 
 func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var statusCode int
 		var input struct {
 			Amount int    `json:"amount"`
 			QrCode string `json:"qr_code"`
@@ -60,17 +60,22 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		tellerOps := service.NewTellerOps(r.Context(), app.Client)
-		_, err = tellerOps.AddByCash(tellerUser.Edges.Teller, targetUser, input.Amount)
+		_, err, statusCode = tellerOps.AddByCash(tellerUser.Edges.Teller, targetUser, input.Amount)
 		if err != nil {
-			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
+			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		_ = response.JSON(w, http.StatusOK, nil)
+		err = response.JSON(w, http.StatusOK, "Funds added to wallet successfully!")
+		if err != nil {
+			errors.ServerError(w, r, err, app)
+			return
+		}
 	}
 }
 
 func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var statusCode int
 		var input struct {
 			Amount int `json:"amount"`
 		}
@@ -88,14 +93,14 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		swd_teller := database.GetOrCreateSwdTeller(app, r.Context())
+		swdTeller := database.GetOrCreateSwdTeller(app, r.Context())
 		tellerOps := service.NewTellerOps(r.Context(), app.Client)
-		_, err := tellerOps.AddBySwd(swd_teller, usr, input.Amount)
+		_, err, statusCode := tellerOps.AddBySwd(swdTeller, usr, input.Amount)
 		if err != nil {
-			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
+			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		err = response.JSON(w, http.StatusOK, nil)
+		err = response.JSON(w, http.StatusOK, "Funds added to wallet successfully")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 		}
@@ -145,12 +150,12 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 		}
 		srcUser := context_config.ContextGetAuthenticatedUser(r)
 		userOps := service.NewUserOps(r.Context(), app.Client)
-		_, err := userOps.Transfer(srcUser, targetUser, input.Amount)
+		_, err, statusCode := userOps.Transfer(srcUser, targetUser, input.Amount)
 		if err != nil {
-			errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
+			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		err = response.JSON(w, http.StatusOK, nil)
+		err = response.JSON(w, http.StatusOK, "Funds transferred from wallet successfully")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 		}
@@ -163,10 +168,13 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 func GetUserQR(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		data := map[string]string{
-			"user_id": strconv.Itoa(usr.ID),
-			"qr_code": usr.QrCode.String(),
+		var data struct {
+			UserId int       `json:"user_id"`
+			QrCode uuid.UUID `json:"qr_code"`
 		}
+		data.UserId = usr.ID
+		data.QrCode = usr.QrCode
+
 		err := response.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
@@ -181,11 +189,16 @@ func GetBalance(app *config.Application) func(http.ResponseWriter, *http.Request
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, "User does not have a wallet", nil, app)
 		}
-		data := map[string]string{
-			"swd":       strconv.Itoa(wallet.Swd),
-			"cash":      strconv.Itoa(wallet.Cash),
-			"pg":        strconv.Itoa(wallet.Pg),
-			"transfers": strconv.Itoa(wallet.Transfers),
+		data := struct {
+			Swd       int `json:"swd"`
+			Cash      int `json:"cash"`
+			Pg        int `json:"pg"`
+			Transfers int `json:"transfers"`
+		}{
+			Swd:       wallet.Swd,
+			Cash:      wallet.Cash,
+			Pg:        wallet.Pg,
+			Transfers: wallet.Transfers,
 		}
 		err = response.JSON(w, http.StatusOK, &data)
 		if err != nil {
@@ -202,12 +215,12 @@ func TransactionHistory(app *config.Application) func(w http.ResponseWriter, r *
 			errors.ErrorMessage(w, r, 404, "User does not have a wallet", nil, app)
 		}
 		transactions := usr.QueryTransactions().AllX(r.Context())
-		// TODO:	txns.to_dict
-		txns := make([]map[string]string, len(transactions))
+
+		var txns []service.TransactionStruct
 		transactionOps := service.NewTransactionOps(r.Context(), app.Client)
 		for _, txn := range transactions {
-			txn_dict := transactionOps.ToDict(txn)
-			txns = append(txns, txn_dict)
+			txnStruct := transactionOps.ToDict(txn)
+			txns = append(txns, *txnStruct)
 		}
 
 		err = response.JSON(w, http.StatusOK, &txns) // does this even work, need to verify
