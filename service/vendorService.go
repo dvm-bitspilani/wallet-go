@@ -24,10 +24,10 @@ func NewVendorOps(ctx context.Context, client *ent.Client) *VendorOps {
 	}
 }
 
-func (r *VendorOps) Open(vendor *ent.Vendor) {
+func (r *VendorOps) Open(vendor *ent.VendorSchema) {
 	vendor.Update().SetClosed(false).SaveX(r.ctx)
 }
 
-func (r *VendorOps) Close(vendor *ent.Vendor) {
+func (r *VendorOps) Close(vendor *ent.VendorSchema) {
 	vendor.Update().SetClosed(true).SaveX(r.ctx)
 }
