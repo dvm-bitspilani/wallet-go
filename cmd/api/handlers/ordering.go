@@ -85,9 +85,9 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				return
 			}
 			userOps := service.NewUserOps(r.Context(), app.Client)
-			data, err := userOps.PlaceOrder(usr, input.Vendor)
+			data, err, statusCode := userOps.PlaceOrder(usr, input.Vendor)
 			if err != nil {
-				errors.ErrorMessage(w, r, 403, err.Error(), nil, app)
+				errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 				return
 			}
 			err = response.JSON(w, http.StatusOK, &data)
