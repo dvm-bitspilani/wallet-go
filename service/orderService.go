@@ -97,23 +97,6 @@ func (r *OrderOps) CalculateTotalPrice(order *ent.Order) int {
 }
 
 func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
-	//VendorSchema := map[string]string{
-	//	"id":        strconv.Itoa(order.Edges.Vendor.ID),
-	//	"name":      order.Edges.Vendor.Name,
-	//	"image_url": order.Edges.Vendor.ImageURL.String(),
-	//}
-	//items := make([]map[string]interface{}, len())
-	//return map[string]string{
-	//	"order_id": strconv.Itoa(order.ID),
-	//	"shell":    strconv.Itoa(order.Edges.Shell.ID),
-	//	//"VendorSchema":      VendorSchema,
-	//	//"items":       items,
-	//	"transaction": strconv.Itoa(order.Edges.Transaction.ID),
-	//	"price":       strconv.Itoa(order.Price),
-	//	"status":      order.Status.String(),
-	//	"otp":         strconv.Itoa(order.Otp), //TODO:	change otp to string
-	//	"otp_seen":    strconv.FormatBool(order.OtpSeen),
-
 	var items []ItemInstanceStruct
 	for _, item := range order.QueryIteminstances().AllX(r.ctx) {
 		items = append(items, ItemInstanceStruct{
