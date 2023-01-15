@@ -82,6 +82,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		err := request.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
+			return
 		}
 
 		if usr.Occupation != "bitsian" {
@@ -106,6 +107,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		err = response.JSON(w, http.StatusOK, "Funds added to wallet successfully")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
+			return
 		}
 	}
 }
