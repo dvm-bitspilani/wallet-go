@@ -79,6 +79,10 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			Amount int `json:"amount"`
 		}
 		usr := context_config.ContextGetAuthenticatedUser(r)
+		err := request.DecodeJSON(w, r, &input)
+		if err != nil {
+			errors.BadRequest(w, r, err, app)
+		}
 
 		if usr.Occupation != "bitsian" {
 			usr.Update().SetDisabled(true).SaveX(r.Context())
@@ -94,7 +98,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 
 		swdTeller := database.GetOrCreateSwdTeller(app, r.Context())
 		tellerOps := service.NewTellerOps(r.Context(), app.Client)
-		_, err, statusCode := tellerOps.AddBySwd(swdTeller, usr, input.Amount)
+		_, err, statusCode = tellerOps.AddBySwd(swdTeller, usr, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
