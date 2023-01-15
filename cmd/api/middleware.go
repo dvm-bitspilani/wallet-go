@@ -103,3 +103,17 @@ func newRequireAuthenticatedUser(app *config.Application) func(handler http.Hand
 		})
 	}
 }
+
+func newDisallowDisabledUser(app *config.Application) func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			usr := context_config.ContextGetAuthenticatedUser(r)
+			if usr.Disabled {
+				errors.DisabledUser(w, r, app)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}

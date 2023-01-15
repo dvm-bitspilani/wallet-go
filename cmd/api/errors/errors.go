@@ -67,6 +67,10 @@ func AuthenticationRequired(w http.ResponseWriter, r *http.Request, app *config.
 	ErrorMessage(w, r, http.StatusUnauthorized, "You must be authenticated to access this resource", nil, app)
 }
 
+func DisabledUser(w http.ResponseWriter, r *http.Request, app *config.Application) {
+	ErrorMessage(w, r, http.StatusUnauthorized, "You've been disabled. Please contact a DVM official", nil, app)
+}
+
 func InvalidCredentials(w http.ResponseWriter, r *http.Request, app *config.Application) {
 	ErrorMessage(w, r, http.StatusUnauthorized, "Invalid Credentials", nil, app)
 }

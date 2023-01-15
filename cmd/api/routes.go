@@ -33,7 +33,11 @@ func routes(app *config.Application) http.Handler {
 
 	authenticatedRoutes := mux.NewRoute().Subrouter()
 	requireAuthenticatedUser := newRequireAuthenticatedUser(app)
+	disallowDisabledUser := newDisallowDisabledUser(app)
+
+	// using middlewares on our subroute
 	authenticatedRoutes.Use(requireAuthenticatedUser)
+	authenticatedRoutes.Use(disallowDisabledUser)
 
 	// Monetary Routes
 	authenticatedRoutes.HandleFunc("/monetary/add/cash", handlers.AddCash(app)).Methods("POST")
