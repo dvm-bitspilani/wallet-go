@@ -42,7 +42,7 @@ func (r *UserOps) Enable(user *ent.User) error {
 }
 
 func (r *UserOps) GetOrCreateWallet(user *ent.User) (*ent.Wallet, error) {
-	if !user.Disabled {
+	if user.Disabled {
 		err := fmt.Errorf("cannot create or return wallet of as %s is disabled", user.Username)
 		//err := exceptions.UserDisabledException{Exception: exceptions.Exception{Message: fmt.Sprintf("cannot create or return wallet of as %s is disabled", user.Username)}}
 		return nil, err //403
