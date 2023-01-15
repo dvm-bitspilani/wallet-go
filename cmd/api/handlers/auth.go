@@ -10,6 +10,7 @@ import (
 	"dvm.wallet/harsh/internal/request"
 	"dvm.wallet/harsh/internal/response"
 	"dvm.wallet/harsh/internal/validator"
+	"dvm.wallet/harsh/service"
 	"fmt"
 	"google.golang.org/api/idtoken"
 	"net/http"
@@ -155,6 +156,13 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		if category == 1 {
+			userOps := service.NewUserOps(r.Context(), app.Client)
+			_, err := userOps.GetOrCreateWallet(userObject)
+			if err != nil {
+				errors.ErrorMessage(w, r, 500, "Something went wrong and we were unable to create the user's wallet", nil, app)
+				return
+			}
+
 			// create payload
 			jwtPayload = map[string]string{
 				"AuthenticationToken":       jwt["AuthenticationToken"],
