@@ -4,7 +4,6 @@ import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"fmt"
 	"net/http"
-	"runtime/debug"
 	"strings"
 
 	"dvm.wallet/harsh/internal/response"
@@ -19,15 +18,15 @@ func ErrorMessage(w http.ResponseWriter, r *http.Request, status int, message st
 
 	err := response.JSONWithHeaders(w, status, map[string]string{"Error": message}, headers)
 	if err != nil {
-		app.Logger.Print(err)
+		app.Logger.Errorf(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func ServerError(w http.ResponseWriter, r *http.Request, err error, app *config.Application) {
-	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.Logger.Output(5, trace)
-
+	//trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
+	//app.Logger.Output(5, trace)
+	app.Logger.Errorf(err.Error())
 	message := "The server encountered a problem and could not process your request"
 	ErrorMessage(w, r, http.StatusInternalServerError, message, nil, app)
 }

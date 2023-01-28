@@ -2,6 +2,7 @@ package config
 
 import (
 	"dvm.wallet/harsh/ent"
+	"go.uber.org/zap"
 	"log"
 )
 
@@ -26,7 +27,9 @@ type Config struct {
 }
 
 type Application struct {
-	Config Config
-	Client *ent.Client
-	Logger *log.Logger
+	Config     Config
+	Client     *ent.Client
+	Logger     *zap.SugaredLogger
+	MainLogger *zap.Logger
+	StdLogger  *log.Logger
 }

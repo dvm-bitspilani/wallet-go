@@ -22,7 +22,7 @@ func serveHTTP(app *config.Application) error {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.Config.HttpPort),
 		Handler:      routes(app),
-		ErrorLog:     app.Logger,
+		ErrorLog:     app.StdLogger,
 		IdleTimeout:  defaultIdleTimeout,
 		ReadTimeout:  defaultReadTimeout,
 		WriteTimeout: defaultWriteTimeout,
@@ -41,7 +41,7 @@ func serveHTTP(app *config.Application) error {
 		shutdownErrorChan <- srv.Shutdown(ctx)
 	}()
 
-	app.Logger.Printf("starting server on %s", srv.Addr)
+	app.Logger.Infof("starting server on %s", srv.Addr)
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
@@ -53,7 +53,7 @@ func serveHTTP(app *config.Application) error {
 		return err
 	}
 
-	app.Logger.Print("stopped server on %s", srv.Addr)
+	app.Logger.Infof("stopped server on %s", srv.Addr)
 
 	return nil
 }

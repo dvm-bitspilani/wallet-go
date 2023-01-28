@@ -2,25 +2,27 @@ package main
 
 import (
 	"dvm.wallet/harsh/cmd/api/config"
-	"flag"
-	"fmt"
-	"log"
-	"os"
-
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/version"
+	"flag"
+	"fmt"
+	"go.uber.org/zap"
+	"log"
 )
 
 func main() {
-	logger := log.New(os.Stdout, "", log.LstdFlags|log.Llongfile)
+	//logger := log.New(os.Stdout, "", log.LstdFlags|log.Llongfile)
 
-	err := run(logger)
+	mainLogger, _ := zap.NewDevelopment()
+	logger := mainLogger.Sugar()
+	stdLogger := zap.NewStdLog(mainLogger)
+	err := run(logger, stdLogger, mainLogger)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatal(err.Error())
 	}
 }
 
-func run(logger *log.Logger) error {
+func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logger) error {
 	var cfg config.Config
 
 	flag.StringVar(&cfg.BaseURL, "base-url", "http://localhost:4444", "base URL for the application")
@@ -44,9 +46,11 @@ func run(logger *log.Logger) error {
 	defer client.Close()
 
 	app := &config.Application{
-		Config: cfg,
-		Client: client,
-		Logger: logger,
+		Config:     cfg,
+		Client:     client,
+		Logger:     logger,
+		MainLogger: mainLogger,
+		StdLogger:  stdLogger,
 	}
 	//ctx := context.Background()
 	//pass, err := password.Hash("harsh")

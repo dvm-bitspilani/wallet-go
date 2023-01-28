@@ -181,11 +181,11 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				// TODO:	websocket implementation here
 				// 			implement put_vendor_orders
 				//			(Also check if its really required)
-				app.Logger.Println("PUT_VENDOR_ORDERS")
+				app.Logger.Debugf("PUT_VENDOR_ORDERS")
 			} else if userObject.Occupation == "teller" {
 				// TODO:	implement websocket based
 				//			put_teller_node here
-				app.Logger.Println("PUT_TELLER_NODE")
+				app.Logger.Debugf("PUT_TELLER_NODE")
 			}
 		} else if category == 3 {
 			jwtPayload = map[string]string{
