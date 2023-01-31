@@ -122,6 +122,8 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 		var transferMode int
 		var targetUser *ent.User
 
+		err := request.DecodeJSON(w, r, &input)
+
 		if input.Amount == 0 {
 			errors.ErrorMessage(w, r, 400, "Amount cannot be 0", nil, app)
 			return
