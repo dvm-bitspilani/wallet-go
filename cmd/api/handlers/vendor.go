@@ -29,7 +29,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
 			return
 		}
-		vendorObj := usr.Edges.VendorSchema
+		vendorObj := usr.QueryVendorSchema().OnlyX(r.Context())
 		vars := mux.Vars(r)
 		status := vars["status"]
 		//check what empty vars does here
@@ -106,30 +106,32 @@ func GetOrderDetails(app *config.Application) func(http.ResponseWriter, *http.Re
 
 		var orderItemsList []itemStruct
 		for _, orderItem := range orderItems {
+			menuItem := orderItem.QueryItem().OnlyX(r.Context())
 			orderItemsList = append(orderItemsList, itemStruct{
-				ItemId:     orderItem.Edges.Item.ID,
-				Name:       orderItem.Edges.Item.Name,
+				ItemId:     menuItem.ID,
+				Name:       menuItem.Name,
 				UnitPrice:  orderItem.PricePerQuantity,
 				Quantity:   orderItem.Quantity,
-				Veg:        orderItem.Edges.Item.Veg,
+				Veg:        menuItem.Veg,
 				TotalPrice: orderItem.PricePerQuantity * orderItem.Quantity,
 			})
 		}
-
+		orderShell := orderObj.QueryShell().OnlyX(r.Context())
+		orderVendorSchema := orderObj.QueryVendorSchema().OnlyX(r.Context())
 		orderDetails := OrderDetailStruct{
-			ShellId:    orderObj.Edges.Shell.ID,
-			VendorName: orderObj.Edges.VendorSchema.Name,
+			ShellId:    orderShell.ID,
+			VendorName: orderVendorSchema.Name,
 			Status:     orderObj.Status,
 			Otp:        orderObj.Otp,
 			Items:      orderItemsList,
 		}
 		if usr.Occupation == "vendor" {
-			if orderObj.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
+			if orderVendorSchema.ID != usr.QueryVendorSchema().OnlyX(r.Context()).ID {
 				errors.ErrorMessage(w, r, 403, "The given order is not handled by requesting VendorSchema", nil, app)
 				return
 			}
 		} else {
-			if orderObj.Edges.Shell.Edges.Wallet.Edges.User.ID != usr.ID {
+			if orderShell.QueryWallet().QueryUser().OnlyX(r.Context()).ID != usr.ID {
 				errors.ErrorMessage(w, r, 403, "This order was not placed by the requesting user", nil, app)
 				return
 			}
@@ -185,30 +187,32 @@ func GetOrderIdArrayDetails(app *config.Application) func(http.ResponseWriter, *
 
 			var orderItemsList []itemStruct
 			for _, orderItem := range orderItems {
+				menuItem := orderItem.QueryItem().OnlyX(r.Context())
 				orderItemsList = append(orderItemsList, itemStruct{
-					ItemId:     orderItem.Edges.Item.ID,
-					Name:       orderItem.Edges.Item.Name,
+					ItemId:     menuItem.ID,
+					Name:       menuItem.Name,
 					UnitPrice:  orderItem.PricePerQuantity,
 					Quantity:   orderItem.Quantity,
-					Veg:        orderItem.Edges.Item.Veg,
+					Veg:        menuItem.Veg,
 					TotalPrice: orderItem.PricePerQuantity * orderItem.Quantity,
 				})
 			}
-
+			orderShell := orderObj.QueryShell().OnlyX(r.Context())
+			orderVendorSchema := orderObj.QueryVendorSchema().OnlyX(r.Context())
 			orderDetails := OrderDetailStruct{
-				ShellId:    orderObj.Edges.Shell.ID,
-				VendorName: orderObj.Edges.VendorSchema.Name,
+				ShellId:    orderShell.ID,
+				VendorName: orderVendorSchema.Name,
 				Status:     orderObj.Status,
 				Otp:        orderObj.Otp,
 				Items:      orderItemsList,
 			}
 			if usr.Occupation == "VendorSchema" {
-				if orderObj.Edges.VendorSchema.ID != usr.Edges.VendorSchema.ID {
+				if orderVendorSchema.ID != usr.QueryVendorSchema().OnlyX(r.Context()).ID {
 					errors.ErrorMessage(w, r, 403, "The given order is not handled by requesting VendorSchema", nil, app)
 					return
 				}
 			} else {
-				if orderObj.Edges.Shell.Edges.Wallet.Edges.User.ID != usr.ID {
+				if orderShell.QueryWallet().QueryUser().OnlyX(r.Context()).ID != usr.ID {
 					errors.ErrorMessage(w, r, 403, "This order was not placed by the requesting user", nil, app)
 					return
 				}
@@ -291,11 +295,11 @@ func GetDayListEarnings(app *config.Application) func(http.ResponseWriter, *http
 			var totalEarnings int
 			var dayEarnings int
 			var orderIdList []int
-			orders := usr.Edges.VendorSchema.QueryOrders().AllX(r.Context())
+			orders := usr.QueryVendorSchema().QueryOrders().AllX(r.Context())
 			for _, orderObj := range orders {
 				if orderObj.Status == helpers.FINISHED {
 					totalEarnings += orderObj.Price
-					if orderObj.Edges.Shell.Timestamp.Day() == timestamp.Day() && orderObj.Edges.Shell.Timestamp.Month() == timestamp.Month() {
+					if orderObj.QueryShell().OnlyX(r.Context()).Timestamp.Day() == timestamp.Day() && orderObj.QueryShell().OnlyX(r.Context()).Timestamp.Month() == timestamp.Month() {
 						dayEarnings += orderObj.Price
 						orderIdList = append(orderIdList, orderObj.ID)
 					}
@@ -438,7 +442,7 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 				errors.ErrorMessage(w, r, 404, fmt.Sprintf("Item with ID %d does not exist", itemObject.ID), nil, app)
 				return
 			}
-			if !validator.In(itemObject, usr.Edges.VendorSchema.QueryItems().AllX(r.Context())...) {
+			if !validator.In(itemObject, usr.QueryVendorSchema().QueryItems().AllX(r.Context())...) {
 				usr.Update().SetDisabled(true).SaveX(r.Context())
 				errors.ErrorMessage(w, r, 403, "Vendor has been disabled for trying to toggle the availibility of an item not belonging to them", nil, app)
 				return
@@ -484,7 +488,7 @@ func GetMenu(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Vendor with ID %d does not exist", vendorId), nil, app)
 			return
 		}
-		if vendorObject.Edges.User.Username == "PROF_SHOW" {
+		if vendorObject.QueryUser().OnlyX(r.Context()).Username == "PROF_SHOW" {
 			errors.ErrorMessage(w, r, 403, "Vendor is a Prof Show", nil, app)
 			return
 		}
@@ -505,7 +509,7 @@ func GetMenu(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				Name:        itemObj.Name,
 				Price:       itemObj.BasePrice,
 				Description: itemObj.Description,
-				VendorId:    itemObj.Edges.VendorSchema.ID,
+				VendorId:    itemObj.QueryVendorSchema().OnlyX(r.Context()).ID,
 				IsVeg:       itemObj.Veg,
 				//IsCombo:     item,
 				IsAvailable: itemObj.Available,
@@ -555,7 +559,7 @@ func GetAllVendorsWithMenu(app *config.Application) func(http.ResponseWriter, *h
 					Name:        itemObj.Name,
 					Price:       itemObj.BasePrice,
 					Description: itemObj.Description,
-					VendorId:    itemObj.Edges.VendorSchema.ID,
+					VendorId:    itemObj.QueryVendorSchema().OnlyX(r.Context()).ID,
 					IsVeg:       itemObj.Veg,
 					IsAvailable: itemObj.Available,
 				})
@@ -615,7 +619,7 @@ func GetVendor(app *config.Application) func(http.ResponseWriter, *http.Request)
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Vendor with ID %d does not exist", vendorId), nil, app)
 			return
 		}
-		if vendorObject.Edges.User.Username == "PROF_SHOW" {
+		if vendorObject.QueryUser().OnlyX(r.Context()).Username == "PROF_SHOW" {
 			errors.ErrorMessage(w, r, 403, "Vendor is a Prof Show", nil, app)
 			return
 		}
@@ -631,7 +635,7 @@ func GetVendor(app *config.Application) func(http.ResponseWriter, *http.Request)
 				Name:        itemObj.Name,
 				Price:       itemObj.BasePrice,
 				Description: itemObj.Description,
-				VendorId:    itemObj.Edges.VendorSchema.ID,
+				VendorId:    itemObj.QueryVendorSchema().OnlyX(r.Context()).ID,
 				IsVeg:       itemObj.Veg,
 				IsAvailable: itemObj.Available,
 			})
