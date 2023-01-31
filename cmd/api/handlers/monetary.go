@@ -131,7 +131,7 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 			errors.ErrorMessage(w, r, 412, "Insufficient funds", nil, app)
 			return
 		}
-
+		transferMode = 1
 		if input.QrCode == uuid.Nil {
 			if input.UserId == 0 {
 				errors.ErrorMessage(w, r, 400, "Missing key in request body", nil, app)
@@ -139,19 +139,18 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 			}
 			transferMode = 2
 		}
-		transferMode = 1
 		if transferMode == 1 {
 			var err error
 			targetUser, err = app.Client.User.Query().Where(user.QrCode(input.QrCode)).Only(r.Context())
 			if err != nil {
-				errors.ErrorMessage(w, r, 404, fmt.Sprintf("User not found with ID %d", input.UserId), nil, app)
+				errors.ErrorMessage(w, r, 404, fmt.Sprintf("User not found with QR %d", input.QrCode), nil, app)
 				return
 			}
 		} else if transferMode == 2 {
 			var err error
 			targetUser, err = app.Client.User.Query().Where(user.ID(input.UserId)).Only(r.Context())
 			if err != nil {
-				errors.ErrorMessage(w, r, 404, fmt.Sprintf("User not found with QR %d", input.UserId), nil, app)
+				errors.ErrorMessage(w, r, 404, fmt.Sprintf("User not found with ID %d", input.UserId), nil, app)
 				return
 			}
 		}
