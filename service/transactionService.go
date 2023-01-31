@@ -73,16 +73,17 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 		}
 	}
 	walletOps := NewWalletOps(ctx, client)
-	if !(srcUser.Occupation == "teller") {
+	if srcUser.Occupation != "teller" {
 		err, statusCode = walletOps.Deduct(src, amt)
 		if err != nil {
 			return nil, err, statusCode
 		} // 400, 412
-		err, statusCode = walletOps.Add(dst, amt, database.GetBalanceFromTransactionType(kind))
-		if err != nil {
-			return nil, err, statusCode
-		} // 400
 	}
+	err, statusCode = walletOps.Add(dst, amt, database.GetBalanceFromTransactionType(kind))
+	if err != nil {
+		return nil, err, statusCode
+	} // 400
+
 	return client.Transactions.Create().
 		SetUser(dstUser).
 		SetAmount(amt).
