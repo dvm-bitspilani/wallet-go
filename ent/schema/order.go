@@ -1,12 +1,16 @@
 package schema
 
 import (
+	"crypto/rand"
 	"dvm.wallet/harsh/internal/helpers"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"io"
 	"time"
 )
+
+var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
 
 // Order holds the schema definition for the Order entity.
 type Order struct {
@@ -19,7 +23,15 @@ func (Order) Fields() []ent.Field {
 		field.Int("price").Default(0).NonNegative(),
 		field.Enum("status").GoType(helpers.Status(0)),
 		field.String("otp").DefaultFunc(func() string {
-			return "1234" // TODO: Implement a OTP generating function
+			b := make([]byte, 6)
+			n, err := io.ReadAtLeast(rand.Reader, b, 6)
+			if n != 6 {
+				panic(err)
+			}
+			for i := 0; i < len(b); i++ {
+				b[i] = table[int(b[i])%len(table)]
+			}
+			return string(b)
 		}),
 		field.Bool("otp_seen").Default(false),
 		field.Time("timestamp").Default(time.Now),
