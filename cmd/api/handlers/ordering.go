@@ -30,6 +30,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			shellId, err = strconv.Atoi(vars["shell_id"])
 			if err != nil {
 				errors.BadRequest(w, r, err, app)
+				return
 			}
 		}
 
@@ -37,7 +38,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			orderShellOps := service.NewOrderShellOps(r.Context(), app.Client)
 			if shellId == 0 { // since initialized ints have 0 as their default value
 				var data []service.OrderShellStruct
-				for _, shell := range usr.Edges.Wallet.QueryShells().Order(ent.Asc(ordershell.FieldTimestamp)).AllX(r.Context()) {
+				for _, shell := range usr.QueryWallet().QueryShells().Order(ent.Asc(ordershell.FieldTimestamp)).AllX(r.Context()) {
 					data = append(data, *orderShellOps.ToDict(shell))
 				}
 				err := response.JSON(w, http.StatusOK, &data)
