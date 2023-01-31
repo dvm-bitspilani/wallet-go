@@ -191,9 +191,10 @@ func GetUserQR(app *config.Application) func(http.ResponseWriter, *http.Request)
 func GetBalance(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		wallet, err := usr.Edges.WalletOrErr()
+		wallet, err := usr.QueryWallet().Only(r.Context())
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, "User does not have a wallet", nil, app)
+			return
 		}
 		data := struct {
 			Swd       int `json:"swd"`
@@ -209,6 +210,7 @@ func GetBalance(app *config.Application) func(http.ResponseWriter, *http.Request
 		err = response.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
+			return
 		}
 	}
 }
