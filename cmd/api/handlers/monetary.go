@@ -218,9 +218,11 @@ func GetBalance(app *config.Application) func(http.ResponseWriter, *http.Request
 func TransactionHistory(app *config.Application) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		_, err := usr.Edges.WalletOrErr()
+		//_, err := usr.Edges.WalletOrErr()
+		_, err := usr.QueryWallet().Only(r.Context())
 		if err != nil {
 			errors.ErrorMessage(w, r, 404, "User does not have a wallet", nil, app)
+			return
 		}
 		transactions := usr.QueryTransactions().AllX(r.Context())
 
@@ -234,6 +236,7 @@ func TransactionHistory(app *config.Application) func(w http.ResponseWriter, r *
 		err = response.JSON(w, http.StatusOK, &txns) // does this even work, need to verify
 		if err != nil {
 			errors.ServerError(w, r, err, app)
+			return
 		}
 	}
 }
