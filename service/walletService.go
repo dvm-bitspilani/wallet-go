@@ -85,7 +85,7 @@ func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 			if wallet.Pg < amount {
 				amount -= wallet.Pg
 				wallet.Update().SetPg(0).SaveX(r.ctx)
-				amount -= wallet.Swd
+				wallet.Update().AddSwd(-amount).SaveX(r.ctx)
 			} else {
 				wallet.Update().AddPg(-amount).SaveX(r.ctx)
 			}
@@ -93,7 +93,7 @@ func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 			wallet.Update().AddCash(-amount).SaveX(r.ctx)
 		}
 	} else {
-		wallet.Update().SetTransfers(-amount).SaveX(r.ctx)
+		wallet.Update().AddTransfers(-amount).SaveX(r.ctx)
 	}
 	return nil, 0
 }
