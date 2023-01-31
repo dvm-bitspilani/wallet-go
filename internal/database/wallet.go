@@ -38,9 +38,10 @@ func GetOrCreateSwdTeller(app *config.Application, ctx context.Context) *ent.Tel
 			SetPassword("swdgivememymoneybackwtf"). // TODO:	write a random password generator and add it to user's default password func
 			SetName("SWD").
 			SetEmail("swd@example.com").
+			SetOccupation("teller").
 			SaveX(ctx)
 	}
-	swdTeller, err = swdUser.Edges.TellerOrErr()
+	swdTeller, err = swdUser.QueryTeller().Only(ctx)
 	if err != nil {
 		swdTeller = app.Client.Teller.Create().
 			SetUser(swdUser).
