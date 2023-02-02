@@ -74,7 +74,7 @@ func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 		return errors.New("amount to deduct from the wallet cannot be negative"), 400 // 400
 	}
 	if r.Balance(wallet) < amount {
-		return fmt.Errorf("%s's current balance is %d", wallet.Edges.User.Username, r.Balance(wallet)), 412 // 412
+		return fmt.Errorf("%s's current balance is %d", wallet.QueryUser().OnlyX(r.ctx).Username, r.Balance(wallet)), 412 // 412
 	}
 	if wallet.Transfers < amount {
 		amount -= wallet.Transfers
@@ -100,7 +100,7 @@ func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 
 func (r *walletOps) ToDict(wallet *ent.Wallet) map[string]string {
 	return map[string]string{
-		"user":          wallet.Edges.User.Username,
+		"user":          wallet.QueryUser().OnlyX(r.ctx).Username,
 		"swd":           strconv.Itoa(wallet.Swd),
 		"cash":          strconv.Itoa(wallet.Cash),
 		"pg":            strconv.Itoa(wallet.Pg),

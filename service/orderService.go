@@ -53,11 +53,11 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			SetUser(usr).
 			SetAmount(order.Price).
 			SetKind(helpers.PURCHASE).
-			SetSource(usr.Edges.Wallet).
-			SetDestination(usr.Edges.VendorSchema.Edges.User.Edges.Wallet).
+			SetSource(usr.QueryWallet().OnlyX(r.ctx)).
+			SetDestination(usr.QueryVendorSchema().QueryUser().QueryWallet().OnlyX(r.ctx)).
 			SaveX(r.ctx)
 		order.Update().SetTransaction(transaction).SetTimestamp(time.Now()).SaveX(r.ctx)
-		err, statusCode := walletOps.Add(usr.Edges.Wallet, order.Price, database.TRANSFER_BAL)
+		err, statusCode := walletOps.Add(usr.QueryWallet().OnlyX(r.ctx), order.Price, database.TRANSFER_BAL)
 		if err != nil {
 			return 0, err, statusCode
 		}
@@ -101,23 +101,24 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 	for _, item := range order.QueryIteminstances().AllX(r.ctx) {
 		items = append(items, ItemInstanceStruct{
 			Id:        item.ID,
-			Name:      item.Edges.Item.Name,
+			Name:      item.QueryItem().OnlyX(r.ctx).Name,
 			Quantity:  item.Quantity,
 			UnitPrice: item.PricePerQuantity,
 		})
 	}
+	orderVendor := order.QueryVendorSchema().OnlyX(r.ctx)
 	vendor := VendorStruct{
-		Id:       order.Edges.VendorSchema.ID,
-		Name:     order.Edges.VendorSchema.Name,
-		ImageUrl: *order.Edges.VendorSchema.ImageURL,
+		Id:       orderVendor.ID,
+		Name:     orderVendor.Name,
+		ImageUrl: orderVendor.ImageURL,
 	}
 
 	return OrderStruct{
 		OrderId:     order.ID,
-		Shell:       order.Edges.Shell.ID,
+		Shell:       order.QueryShell().OnlyX(r.ctx).ID,
 		Vendor:      vendor,
 		Items:       items,
-		Transaction: order.Edges.Transaction.ID,
+		Transaction: order.QueryTransaction().OnlyX(r.ctx).ID,
 		Price:       order.Price,
 		Status:      order.Status,
 		Otp:         order.Otp,

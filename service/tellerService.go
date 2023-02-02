@@ -23,7 +23,7 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 	var statusCode int
 	tellerUsr := teller.QueryUser().OnlyX(r.ctx)
 	if tellerUsr.Disabled == true {
-		err := fmt.Errorf("teller %s is disabled", teller.Edges.User.Username)
+		err := fmt.Errorf("teller %s is disabled", teller.QueryUser().OnlyX(r.ctx).Username)
 		//err := exceptions.Exception{Message: fmt.Sprintf("teller %s is disabled", teller.Edges.User.Username), Status: 403}
 		return nil, err, 403 // 403
 	}

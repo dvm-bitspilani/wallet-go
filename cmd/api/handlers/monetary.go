@@ -59,7 +59,7 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		tellerOps := service.NewTellerOps(r.Context(), app.Client)
-		_, err, statusCode = tellerOps.AddByCash(tellerUser.Edges.Teller, targetUser, input.Amount)
+		_, err, statusCode = tellerOps.AddByCash(tellerUser.QueryTeller().OnlyX(r.Context()), targetUser, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return

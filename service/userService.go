@@ -110,7 +110,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 		if vendorObj.Closed {
 			return nil, fmt.Errorf("Vendor %s is closed", vendorObj.Name), 412 //412 ??
 		}
-		if vendorObj.Edges.User.Disabled {
+		if vendorObj.QueryUser().OnlyX(r.ctx).Disabled {
 			return nil, fmt.Errorf("Vendor %s is disabled", vendorObj.Name), 412 // 403
 		}
 
@@ -119,7 +119,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 			if err != nil {
 				return nil, fmt.Errorf("item with ID %d does not exist", itemStruct.ItemId), 404
 			}
-			if itemObj.Edges.VendorSchema != vendorObj {
+			if itemObj.QueryVendorSchema().OnlyX(r.ctx) != vendorObj {
 				return nil, errors.New("cannot order items from the wrong vendor"), 403 // 403
 			}
 			if !itemObj.Available {
@@ -133,12 +133,12 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 		}
 	}
 	walletOps := NewWalletOps(r.ctx, r.client)
-	if totalPrice > walletOps.Balance(usr.Edges.Wallet) {
-		return nil, fmt.Errorf("order price: %d, current balance: %d", totalPrice, walletOps.Balance(usr.Edges.Wallet)), 412
+	if totalPrice > walletOps.Balance(usr.QueryWallet().OnlyX(r.ctx)) {
+		return nil, fmt.Errorf("order price: %d, current balance: %d", totalPrice, walletOps.Balance(usr.QueryWallet().OnlyX(r.ctx))), 412
 	}
 
 	// creation and saving phase
-	shell := r.client.OrderShell.Create().SetWallet(usr.Edges.Wallet).SetPrice(totalPrice).SaveX(r.ctx)
+	shell := r.client.OrderShell.Create().SetWallet(usr.QueryWallet().OnlyX(r.ctx)).SetPrice(totalPrice).SaveX(r.ctx)
 	orderOps := NewOrderOps(r.ctx, r.client)
 	for _, vendorStruct := range orderList {
 		vendorObj := r.client.VendorSchema.Query().Where(vendor.ID(vendorStruct.VendorId)).OnlyX(r.ctx)
@@ -158,7 +158,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 			order.Update().SetPrice(orderOps.CalculateTotalPrice(order)).SaveX(r.ctx)
 		}
 	}
-	err, statusCode := walletOps.Deduct(usr.Edges.Wallet, totalPrice)
+	err, statusCode := walletOps.Deduct(usr.QueryWallet().OnlyX(r.ctx), totalPrice)
 	if err != nil {
 		return nil, err, statusCode
 	}
