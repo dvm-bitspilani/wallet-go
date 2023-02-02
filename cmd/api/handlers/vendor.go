@@ -413,14 +413,14 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 		usr := context_config.ContextGetAuthenticatedUser(r)
 		if usr.Occupation != "vendor" {
 			usr.Update().SetDisabled(true).SaveX(r.Context())
-			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
+			errors.ErrorMessage(w, r, 403, "Requesting user is not a Vendor", nil, app)
 			return
 		}
 
 		var input struct {
 			ItemObjList []struct {
-				ItemId               int `json:"item_id"`
-				NewAvailabilityState int `json:"new_availability_state"`
+				ItemId               int  `json:"item_id"`
+				NewAvailabilityState bool `json:"new_availability_state"`
 			} `json:"item_id_list"`
 		}
 		err := request.DecodeJSON(w, r, &input)
@@ -446,17 +446,17 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 				errors.ErrorMessage(w, r, 403, "Vendor has been disabled for trying to toggle the availibility of an item not belonging to them", nil, app)
 				return
 			}
-			if !validator.In(itemStruct.NewAvailabilityState, 0, 1) {
-				errors.ErrorMessage(w, r, 400, fmt.Sprintf("Invalid valye of new_availability state for item_id %d", itemStruct.ItemId), nil, app)
-				return
-			}
+			//if !validator.In(itemStruct.NewAvailabilityState, 0, 1) {
+			//	errors.ErrorMessage(w, r, 400, fmt.Sprintf("Invalid valye of new_availability state for item_id %d", itemStruct.ItemId), nil, app)
+			//	return
+			//}
 			var updatedItem outputItem
 			updatedItem.ItemId = itemObject.ID
-			if itemStruct.NewAvailabilityState == 0 {
+			if !itemStruct.NewAvailabilityState {
 				itemObject.Update().SetAvailable(false).SaveX(r.Context())
 				updatedItem.Available = false
 				availabilityData.Items = append(availabilityData.Items, updatedItem)
-			} else if itemStruct.NewAvailabilityState == 1 {
+			} else if itemStruct.NewAvailabilityState {
 				itemObject.Update().SetAvailable(true).SaveX(r.Context())
 				updatedItem.Available = true
 				availabilityData.Items = append(availabilityData.Items, updatedItem)
