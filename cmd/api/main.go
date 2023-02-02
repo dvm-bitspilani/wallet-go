@@ -54,11 +54,7 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 	}
 	//ctx := context.Background()
 	//pass, err := password.Hash("harsh")
-	//logger.Println(client.User.Create().
-	//	SetUsername("f20211725").
-	//	SetEmail("f20211725@pilani.bits-pilani.ac.in").
-	//	SetPassword(pass).
-	//	SetName("Harsh Singh").
-	//	Save(ctx))
+	//u, _ := client.User.Query().Where(user.Username("vendorman")).Only(ctx)
+	//app.Logger.Debugf(client.VendorSchema.Create().SetUser(u).SetClosed(false).SetName("vendy boi").SaveX(ctx).String())
 	return serveHTTP(app)
 }
