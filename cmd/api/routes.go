@@ -60,8 +60,8 @@ func routes(app *config.Application) http.Handler {
 	authenticatedRoutes.HandleFunc("/vendor/order/{order_id}", handlers.GetOrderDetails(app)).Methods("GET")
 	authenticatedRoutes.HandleFunc("/vendor/orders/{order_id}/change_status", handlers.AdvanceOrders(app)).Methods("POST")
 	authenticatedRoutes.HandleFunc("/vendor/orders/{order_id}/decline", handlers.DeclineOrders(app)).Methods("POST")
-	authenticatedRoutes.HandleFunc("/vendor/items/toggle_availability", handlers.DeclineOrders(app)).Methods("POST")
-	authenticatedRoutes.HandleFunc("/vendor/earnings-list", handlers.ToggleAvailability(app)).Methods("POST")
+	authenticatedRoutes.HandleFunc("/vendor/items/toggle_availability", handlers.ToggleAvailability(app)).Methods("POST")
+	authenticatedRoutes.HandleFunc("/vendor/earnings-list", handlers.GetDayListEarnings(app)).Methods("POST")
 
 	//authenticatedRoutes.HandleFunc("/protected", app.protected).Methods("GET")
 
