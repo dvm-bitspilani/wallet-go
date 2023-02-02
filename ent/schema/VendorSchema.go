@@ -4,7 +4,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"net/url"
 )
 
 // VendorSchema holds the schema definition for the VendorSchema entity.
@@ -19,7 +18,8 @@ func (VendorSchema) Fields() []ent.Field {
 		field.Text("address").Optional(),
 		field.Bool("closed").Default(true),
 		field.Text("Description").Optional(),
-		field.JSON("image_url", &url.URL{}).Optional(),
+		//field.JSON("image_url", &url.URL{}).Optional(), // this didn't work for some reason, might be because it is not compatible with Postgres
+		field.Text("image_url").Optional(),
 	}
 }
 

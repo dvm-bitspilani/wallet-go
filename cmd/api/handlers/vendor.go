@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -538,7 +537,7 @@ func GetAllVendorsWithMenu(app *config.Application) func(http.ResponseWriter, *h
 		type vendorStruct struct {
 			ID          int        `json:"id"`
 			Name        string     `json:"name"`
-			ImageUrl    url.URL    `json:"image_url"`
+			ImageUrl    string     `json:"image_url"`
 			Description string     `json:"description"`
 			Closed      bool       `json:"closed"`
 			Menu        []menuItem `json:"menu"`
@@ -568,7 +567,7 @@ func GetAllVendorsWithMenu(app *config.Application) func(http.ResponseWriter, *h
 			data = append(data, vendorStruct{
 				ID:          vendorObj.ID,
 				Name:        vendorObj.Name,
-				ImageUrl:    *vendorObj.ImageURL,
+				ImageUrl:    vendorObj.ImageURL,
 				Description: vendorObj.Description,
 				Closed:      vendorObj.Closed,
 				Menu:        menu,
@@ -598,7 +597,7 @@ func GetVendor(app *config.Application) func(http.ResponseWriter, *http.Request)
 		type vendorStruct struct {
 			ID          int        `json:"id"`
 			Name        string     `json:"name"`
-			ImageUrl    url.URL    `json:"image_url"`
+			ImageUrl    string     `json:"image_url"`
 			Description string     `json:"description"`
 			Closed      bool       `json:"closed"`
 			Menu        []menuItem `json:"menu"`
@@ -644,7 +643,7 @@ func GetVendor(app *config.Application) func(http.ResponseWriter, *http.Request)
 		data := vendorStruct{
 			ID:          vendorObject.ID,
 			Name:        vendorObject.Name,
-			ImageUrl:    *vendorObject.ImageURL,
+			ImageUrl:    vendorObject.ImageURL,
 			Description: vendorObject.Description,
 			Closed:      vendorObject.Closed,
 			Menu:        menu,
