@@ -106,7 +106,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 					// but it's probably worth it to handle that case some time in the future.
 					case "participant":
 						category = 1
-					case "VendorSchema":
+					case "vendor":
 						category = 2
 					case "teller":
 						category = 2
