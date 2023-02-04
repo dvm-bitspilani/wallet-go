@@ -112,7 +112,7 @@ func MakeOtpSeen(app *config.Application) func(http.ResponseWriter, *http.Reques
 			return
 		}
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if orderObj.QueryShell().QueryWallet().OnlyX(r.Context()) != usr.QueryWallet().OnlyX(r.Context()) {
+		if orderObj.QueryShell().QueryWallet().OnlyX(r.Context()).ID != usr.QueryWallet().OnlyX(r.Context()).ID {
 			errors.ErrorMessage(w, r, 403, "User did not place this order", nil, app)
 			return
 		}
