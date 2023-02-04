@@ -48,14 +48,14 @@ func routes(app *config.Application) http.Handler {
 	authenticatedRoutes.HandleFunc("/monetary/transactions/history", handlers.TransactionHistory(app)).Methods("GET")
 
 	// Ordering Routes
-	authenticatedRoutes.HandleFunc("/order/{shell_id}", handlers.Order(app)).Methods("GET", "POST")
+	authenticatedRoutes.HandleFunc("/order/{shell_id:(?:|[0-9]+)}", handlers.Order(app)).Methods("GET", "POST")
 	authenticatedRoutes.HandleFunc("/order/make_otp_seen", handlers.MakeOtpSeen(app)).Methods("POST")
 
 	// Vendor Routes
 	authenticatedRoutes.HandleFunc("/vendors/", handlers.GetAllVendorsWithMenu(app)).Methods("GET")
 	authenticatedRoutes.HandleFunc("/vendor/{vendor_id}", handlers.GetVendor(app)).Methods("GET")
 	authenticatedRoutes.HandleFunc("/vendor/{vendor_id}/items", handlers.GetMenu(app)).Methods("GET")
-	authenticatedRoutes.HandleFunc("/vendor/orders/{status}", handlers.GetVendorOrders(app)).Methods("GET")
+	authenticatedRoutes.HandleFunc("/vendor/orders/{status:(?:pending|accepted|ready|finished|declined|)}", handlers.GetVendorOrders(app)).Methods("GET")
 	authenticatedRoutes.HandleFunc("/vendor/orders/idlist", handlers.GetOrderIdArrayDetails(app)).Methods("POST")
 	authenticatedRoutes.HandleFunc("/vendor/order/{order_id}", handlers.GetOrderDetails(app)).Methods("GET")
 	authenticatedRoutes.HandleFunc("/vendor/orders/{order_id}/change_status", handlers.AdvanceOrders(app)).Methods("POST")

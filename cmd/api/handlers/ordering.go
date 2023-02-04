@@ -24,14 +24,10 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		usr := context_config.ContextGetAuthenticatedUser(r)
 		vars := mux.Vars(r)
 		var shellId int
-		var err error
 
-		if _, ok := vars["shell_id"]; ok {
-			shellId, err = strconv.Atoi(vars["shell_id"])
-			if err != nil {
-				errors.BadRequest(w, r, err, app)
-				return
-			}
+		shellId, err := strconv.Atoi(vars["shell_id"])
+		if err != nil {
+			shellId = 0
 		}
 
 		if r.Method == "GET" {
@@ -72,7 +68,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			//	}
 
 			var input struct {
-				Vendor []helpers.OrderActionVendorStruct
+				Vendor []helpers.OrderActionVendorStruct `json:"user_order"`
 			}
 
 			err := request.DecodeJSON(w, r, &input)
