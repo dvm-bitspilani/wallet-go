@@ -62,13 +62,14 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			return 0, err, statusCode
 		}
 	} else {
-		fmt.Println("HEELL")
 		if order.Status == helpers.DECLINED {
 			order.Update().SetDeclinedTimestamp(time.Now()).SaveX(r.ctx)
 		} else if order.Status == helpers.FINISHED {
 			order.Update().SetFinishedTimestamp(time.Now()).SaveX(r.ctx)
 		} else if order.Status == helpers.ACCEPTED {
 			order.Update().SetAcceptedTimestamp(time.Now()).SaveX(r.ctx)
+		} else if order.Status == helpers.READY {
+			order.Update().SetReadyTimestamp(time.Now()).SaveX(r.ctx)
 		}
 	}
 	// TODO:	update_order_status
