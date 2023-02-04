@@ -119,7 +119,8 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 			if err != nil {
 				return nil, fmt.Errorf("item with ID %d does not exist", itemStruct.ItemId), 404
 			}
-			if itemObj.QueryVendorSchema().OnlyX(r.ctx) != vendorObj {
+			if itemObj.QueryVendorSchema().OnlyX(r.ctx).ID != vendorObj.ID {
+				//fmt.Println(itemObj.QueryVendorSchema().OnlyX(r.ctx) == vendorObj)      // TODO: This returns false, find out why
 				return nil, errors.New("cannot order items from the wrong vendor"), 403 // 403
 			}
 			if !itemObj.Available {
@@ -145,6 +146,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 		order := r.client.Order.Create().
 			SetShell(shell).
 			SetVendorSchema(vendorObj).
+			SetStatus(helpers.PENDING).
 			SaveX(r.ctx)
 
 		for _, itemStruct := range vendorStruct.Order {

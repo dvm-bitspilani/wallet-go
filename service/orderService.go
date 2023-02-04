@@ -112,13 +112,19 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 		Name:     orderVendor.Name,
 		ImageUrl: orderVendor.ImageURL,
 	}
-
+	txn, err := order.QueryTransaction().Only(r.ctx)
+	var txnId int
+	if err != nil {
+		txnId = 0
+	} else {
+		txnId = txn.ID
+	}
 	return OrderStruct{
 		OrderId:     order.ID,
 		Shell:       order.QueryShell().OnlyX(r.ctx).ID,
 		Vendor:      vendor,
 		Items:       items,
-		Transaction: order.QueryTransaction().OnlyX(r.ctx).ID,
+		Transaction: txnId,
 		Price:       order.Price,
 		Status:      order.Status,
 		Otp:         order.Otp,
