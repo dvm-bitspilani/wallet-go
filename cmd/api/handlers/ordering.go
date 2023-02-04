@@ -99,7 +99,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 func MakeOtpSeen(app *config.Application) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var input struct {
-			OrderId int
+			OrderId int `json:"order_id"`
 		}
 		err := request.DecodeJSON(w, r, &input)
 		if err != nil {
