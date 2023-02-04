@@ -30,3 +30,11 @@ func (r *VendorOps) Open(vendor *ent.VendorSchema) {
 func (r *VendorOps) Close(vendor *ent.VendorSchema) {
 	vendor.Update().SetClosed(true).SaveX(r.ctx)
 }
+
+func (r *VendorOps) GetVendorArray(vendor *ent.VendorSchema) []int {
+	var vendorIdArray []int
+	for _, ItemObj := range vendor.QueryItems().AllX(r.ctx) {
+		vendorIdArray = append(vendorIdArray, ItemObj.ID)
+	}
+	return vendorIdArray
+}
