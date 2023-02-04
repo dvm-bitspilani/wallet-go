@@ -40,6 +40,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 				data = append(data, orderOps.ToDict(orderObj))
 			}
 			err := response.JSON(w, http.StatusOK, &data)
+			return
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
