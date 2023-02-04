@@ -352,8 +352,7 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Order %d not found", orderId), nil, app)
 			return
 		}
-
-		if validator.In(input.NewStatus-int(orderObj.Status), 0, 1) {
+		if !validator.In(input.NewStatus-int(orderObj.Status), 0, 1) {
 			errors.ErrorMessage(w, r, 403, "Invalid action", nil, app)
 			return
 		}
