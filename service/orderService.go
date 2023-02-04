@@ -56,7 +56,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			SetSource(usr.QueryWallet().OnlyX(r.ctx)).
 			SetDestination(usr.QueryVendorSchema().QueryUser().QueryWallet().OnlyX(r.ctx)).
 			SaveX(r.ctx)
-		order.Update().SetTransaction(transaction).SetReadyTimestamp(time.Now()).SaveX(r.ctx)
+		order.Update().SetTransaction(transaction).SetFinishedTimestamp(time.Now()).SaveX(r.ctx)
 		err, statusCode := walletOps.Add(usr.QueryWallet().OnlyX(r.ctx), order.Price, database.TRANSFER_BAL)
 		if err != nil {
 			return 0, err, statusCode
