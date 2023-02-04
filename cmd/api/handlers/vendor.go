@@ -435,13 +435,16 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 		var availabilityData struct {
 			Items []outputItem `json:"items"`
 		}
+
+		vendorOps := service.NewVendorOps(r.Context(), app.Client)
+		vendorItemsIdArray := vendorOps.GetVendorArray(usr.QueryVendorSchema().OnlyX(r.Context()))
 		for _, itemStruct := range input.ItemObjList {
 			itemObject, err := app.Client.Item.Query().Where(item.ID(itemStruct.ItemId)).Only(r.Context())
 			if err != nil {
 				errors.ErrorMessage(w, r, 404, fmt.Sprintf("Item with ID %d does not exist", itemObject.ID), nil, app)
 				return
 			}
-			if !validator.In(itemObject, usr.QueryVendorSchema().QueryItems().AllX(r.Context())...) {
+			if !validator.In(itemObject.ID, vendorItemsIdArray...) {
 				usr.Update().SetDisabled(true).SaveX(r.Context())
 				errors.ErrorMessage(w, r, 403, "Vendor has been disabled for trying to toggle the availibility of an item not belonging to them", nil, app)
 				return
