@@ -86,7 +86,6 @@ func (r *OrderOps) Decline(order *ent.Order) (error, int) {
 		return errors.New("vendor has already accepted the order, cannot decline now"), 412
 	}
 	order.Update().SetStatus(helpers.DECLINED).SaveX(r.ctx)
-	// TODO:	update_order_status
 	realtime.UpdateOrderStatus(r.app.Manager, order.QueryShell().QueryWallet().QueryUser().OnlyX(r.ctx).ID, order.ID, order.Status)
 	return nil, 0
 }
