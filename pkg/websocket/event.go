@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"dvm.wallet/harsh/internal/helpers"
 	"encoding/json"
 	"fmt"
 )
@@ -52,7 +53,7 @@ type UpdateOrderStatus struct {
 	Status string `json:"status"`
 }
 
-func UpdateOrderStatusHandler(e Event, c *Client) error {
+func UpdateOrderStatusHandler(e Event, c *Client, status helpers.Status) error {
 	//var BalanceEvent UpdateBalanceEvent
 	//if err := json.Unmarshal(e.Payload, &BalanceEvent); err != nil {
 	//	return fmt.Errorf("bad payload in request: %v", err)
@@ -60,7 +61,7 @@ func UpdateOrderStatusHandler(e Event, c *Client) error {
 	//fmt.Println(BalanceEvent.TotalBalance)
 	//return nil
 	var updateOrderStatusEvent UpdateOrderStatus
-	updateOrderStatusEvent.Status = "Bruh"
+	updateOrderStatusEvent.Status = status.String()
 
 	data, err := json.Marshal(updateOrderStatusEvent)
 	if err != nil {

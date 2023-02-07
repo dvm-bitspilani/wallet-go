@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent"
 )
 
 type ItemInstanceOps struct {
-	ctx    context.Context
-	client *ent.Client
+	ctx context.Context
+	app *config.Application
 }
 
 type ItemInstanceStruct struct {
@@ -17,10 +18,10 @@ type ItemInstanceStruct struct {
 	UnitPrice int    `json:"unit_price"`
 }
 
-func NewItemInstance(ctx context.Context, client *ent.Client) *ItemOps {
-	return &ItemOps{
-		ctx:    ctx,
-		client: client,
+func NewItemInstance(ctx context.Context, app *config.Application) *ItemInstanceOps {
+	return &ItemInstanceOps{
+		ctx: ctx,
+		app: app,
 	}
 }
 

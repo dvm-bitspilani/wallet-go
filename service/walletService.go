@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/internal/database"
 	"errors"
@@ -9,25 +10,25 @@ import (
 	"strconv"
 )
 
-type walletOps struct {
-	ctx    context.Context
-	client *ent.Client
+type WalletOps struct {
+	ctx context.Context
+	app *config.Application
 }
 
-func NewWalletOps(ctx context.Context, client *ent.Client) *walletOps {
-	return &walletOps{
-		ctx:    ctx,
-		client: client,
+func NewWalletOps(ctx context.Context, app *config.Application) *WalletOps {
+	return &WalletOps{
+		ctx: ctx,
+		app: app,
 	}
 }
 
-func (r *walletOps) Balance(wallet *ent.Wallet) int {
+func (r *WalletOps) Balance(wallet *ent.Wallet) int {
 	return wallet.Swd + wallet.Cash + wallet.Pg + wallet.Transfers
 }
 
 // TODO: update_balance by overiding the save method
 
-func (r *walletOps) Add(wallet *ent.Wallet, amount int, balanceType database.BalanceType) (error, int) {
+func (r *WalletOps) Add(wallet *ent.Wallet, amount int, balanceType database.BalanceType) (error, int) {
 	if amount < 0 {
 		err := fmt.Errorf("amount to add to wallet cannot be negative")
 		return err, 400 // 400
@@ -49,7 +50,7 @@ func (r *walletOps) Add(wallet *ent.Wallet, amount int, balanceType database.Bal
 	}
 }
 
-func (r *walletOps) AddAll(wallet *ent.Wallet, addDict map[string]int) {
+func (r *WalletOps) AddAll(wallet *ent.Wallet, addDict map[string]int) {
 	swd, ok := addDict["swd"]
 	if !ok {
 		swd = 0
@@ -69,7 +70,7 @@ func (r *walletOps) AddAll(wallet *ent.Wallet, addDict map[string]int) {
 	wallet.Update().AddSwd(swd).AddCash(cash).AddPg(pg).AddTransfers(transfers).SaveX(r.ctx)
 }
 
-func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
+func (r *WalletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 	if amount < 0 {
 		return errors.New("amount to deduct from the wallet cannot be negative"), 400 // 400
 	}
@@ -98,7 +99,7 @@ func (r *walletOps) Deduct(wallet *ent.Wallet, amount int) (error, int) {
 	return nil, 0
 }
 
-func (r *walletOps) ToDict(wallet *ent.Wallet) map[string]string {
+func (r *WalletOps) ToDict(wallet *ent.Wallet) map[string]string {
 	return map[string]string{
 		"user":          wallet.QueryUser().OnlyX(r.ctx).Username,
 		"swd":           strconv.Itoa(wallet.Swd),

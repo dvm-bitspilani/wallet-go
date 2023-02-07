@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
@@ -11,14 +12,14 @@ import (
 )
 
 type TransactionOps struct {
-	ctx    context.Context
-	client *ent.Client
+	ctx context.Context
+	app *config.Application
 }
 
-func NewTransactionOps(ctx context.Context, app *ent.Client) *TransactionOps {
+func NewTransactionOps(ctx context.Context, app *config.Application) *TransactionOps {
 	return &TransactionOps{
-		ctx:    ctx,
-		client: app,
+		ctx: ctx,
+		app: app,
 	}
 }
 
@@ -29,10 +30,10 @@ type TransactionStruct struct {
 	Timestamp time.Time        `json:"timestamp"`
 }
 
-func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUser *ent.User, ctx context.Context, client *ent.Client) (*ent.Transactions, error, int) {
+func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUser *ent.User, ctx context.Context, app *config.Application) (*ent.Transactions, error, int) {
 	var statusCode int
 
-	userOps := NewUserOps(ctx, client)
+	userOps := NewUserOps(ctx, app)
 	src, err := userOps.GetOrCreateWallet(srcUser)
 	if err != nil {
 		return nil, err, 403 // 403
@@ -72,7 +73,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 			return nil, err, 403 // 403
 		}
 	}
-	walletOps := NewWalletOps(ctx, client)
+	walletOps := NewWalletOps(ctx, app)
 	if srcUser.Occupation != "teller" {
 		err, statusCode = walletOps.Deduct(src, amt)
 		if err != nil {
@@ -84,7 +85,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 		return nil, err, statusCode
 	} // 400
 
-	return client.Transactions.Create().
+	return app.Client.Transactions.Create().
 		SetUser(dstUser).
 		SetAmount(amt).
 		SetKind(kind).

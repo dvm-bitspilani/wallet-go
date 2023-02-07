@@ -156,7 +156,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		if category == 1 {
-			userOps := service.NewUserOps(r.Context(), app.Client)
+			userOps := service.NewUserOps(r.Context(), app)
 			_, err := userOps.GetOrCreateWallet(userObject)
 			if err != nil {
 				errors.ErrorMessage(w, r, 500, "Something went wrong and we were unable to create the user's wallet", nil, app)

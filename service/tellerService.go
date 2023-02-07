@@ -36,13 +36,13 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 		//err := exceptions.Exception{Message: "cash additions to BITSian wallets is not allowed", Status: 403}
 		return nil, err, 403 // 403
 	}
-	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_CASH, tellerUsr, user, r.ctx, r.app.Client)
+	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_CASH, tellerUsr, user, r.ctx, r.app)
 	if err != nil {
 		return nil, err, statusCode
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	walletOps := NewWalletOps(r.ctx, r.app.Client)
-	realtime.UpdateBalance(r.app.Manager, user, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
+	walletOps := NewWalletOps(r.ctx, r.app)
+	realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
 	return transaction, nil, 0
 }
 
@@ -60,13 +60,13 @@ func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*e
 		//err := exceptions.Exception{Message: "Only the SWD teller may add money via SWD", Status: 403}
 		return nil, err, 403
 	}
-	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_SWD, tellerUsr, user, r.ctx, r.app.Client)
+	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_SWD, tellerUsr, user, r.ctx, r.app)
 	if err != nil {
 		return nil, err, statusCode
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	walletOps := NewWalletOps(r.ctx, r.app.Client)
-	realtime.UpdateBalance(r.app.Manager, user, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
+	walletOps := NewWalletOps(r.ctx, r.app)
+	realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
 	return transaction, nil, 0
 }
 

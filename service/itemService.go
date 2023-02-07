@@ -2,18 +2,19 @@ package service
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent"
 )
 
 type ItemOps struct {
-	ctx    context.Context
-	client *ent.Client
+	ctx context.Context
+	app *config.Application
 }
 
-func NewItemOps(ctx context.Context, client *ent.Client) *ItemOps {
+func NewItemOps(ctx context.Context, app *config.Application) *ItemOps {
 	return &ItemOps{
-		ctx:    ctx,
-		client: client,
+		ctx: ctx,
+		app: app,
 	}
 }
 
