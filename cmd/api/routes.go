@@ -4,7 +4,6 @@ import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/cmd/api/errors"
 	"dvm.wallet/harsh/cmd/api/handlers"
-	"dvm.wallet/harsh/pkg/websocket"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,10 +23,6 @@ func routes(app *config.Application) http.Handler {
 	// Health Routes
 	mux.HandleFunc("/status", handlers.Status(app)).Methods("GET")
 
-	// For websocket
-	manager := websocket.NewManager()
-	mux.HandleFunc("/ws", manager.ServeWs)
-
 	//mux.HandleFunc("/users", app.createUser).Methods("POST")
 
 	// Auth Routes
@@ -40,6 +35,9 @@ func routes(app *config.Application) http.Handler {
 	// using middlewares on our subroute
 	authenticatedRoutes.Use(requireAuthenticatedUser)
 	authenticatedRoutes.Use(disallowDisabledUser)
+
+	// For websocket
+	authenticatedRoutes.HandleFunc("/ws", app.Manager.ServeWs)
 
 	// Monetary Routes
 	authenticatedRoutes.HandleFunc("/monetary/add/cash", handlers.AddCash(app)).Methods("POST")

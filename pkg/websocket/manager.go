@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"errors"
+	context_config "dvm.wallet/harsh/cmd/api/context"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -12,22 +12,25 @@ var (
 	websocketUpgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
-	ErrEventNotSupported = errors.New("this Event type is not supported")
+	//ErrEventNotSupported = errors.New("this Event type is not supported")
 )
 
 type Manager struct {
-	clients ClientList
+	Clients          ClientList
+	ClientUserIDList ClientIDList
 	sync.Mutex
 	handlers map[string]EventHandler
 }
 
 func NewManager() *Manager {
 	m := &Manager{
-		clients:  make(ClientList),
-		handlers: make(map[string]EventHandler),
+		Clients:          make(ClientList),
+		ClientUserIDList: make(ClientIDList),
+		handlers:         make(map[string]EventHandler),
 	}
-	m.setupEventHandlers()
+	//m.setupEventHandlers()
 	return m
 }
 
@@ -39,43 +42,47 @@ func (m *Manager) ServeWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := NewClient(conn, m)
-	m.addClient(client)
-	go client.readMessage()
-	go client.writeMessage()
+	usr := context_config.ContextGetAuthenticatedUser(r)
+	m.addClient(client, usr.ID)
+	go client.readMessage(usr.ID)
+	go client.writeMessage(usr.ID)
 }
 
-func (m *Manager) addClient(client *Client) {
+func (m *Manager) addClient(client *Client, clientId int) {
 	m.Lock()
 	defer m.Unlock()
-	m.clients[client] = true
+	m.Clients[client] = true
+	m.ClientUserIDList[clientId] = client
 }
 
-func (m *Manager) removeClient(client *Client) {
+func (m *Manager) removeClient(client *Client, clientId int) {
 	m.Lock()
 	defer m.Unlock()
 
-	if _, ok := m.clients[client]; ok {
+	if _, ok := m.Clients[client]; ok {
 		client.connection.Close()
-		delete(m.clients, client)
+		delete(m.Clients, client)
+		delete(m.ClientUserIDList, clientId)
 	}
 }
 
-func (m *Manager) setupEventHandlers() {
-	//m.handlers[EventUpdateBalance] = func(e Event, c *Client) error {
-	//	fmt.Println(e)
-	//	return nil
-	//}
-	m.handlers[EventUpdateBalance] = UpdateBalanceHandler
-	m.handlers[EventUpdateOrder] = UpdateOrderStatusHandler
-}
-
-func (m *Manager) routeEvent(event Event, c *Client) error {
-	if handler, ok := m.handlers[event.Type]; ok {
-		if err := handler(event, c); err != nil {
-			return err
-		}
-		return nil
-	} else {
-		return ErrEventNotSupported
-	}
-}
+//
+//func (m *Manager) setupEventHandlers() {
+//	//m.handlers[EventUpdateBalance] = func(e Event, c *Client) error {
+//	//	fmt.Println(e)
+//	//	return nil
+//	//}
+//	m.handlers[EventUpdateBalance] = UpdateBalanceHandler
+//	m.handlers[EventUpdateOrder] = UpdateOrderStatusHandler
+//}
+//
+//func (m *Manager) routeEvent(event Event, c *Client) error {
+//	if handler, ok := m.handlers[event.Type]; ok {
+//		if err := handler(event, c); err != nil {
+//			return err
+//		}
+//		return nil
+//	} else {
+//		return ErrEventNotSupported
+//	}
+//}

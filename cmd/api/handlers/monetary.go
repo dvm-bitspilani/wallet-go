@@ -58,7 +58,7 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		tellerOps := service.NewTellerOps(r.Context(), app.Client)
+		tellerOps := service.NewTellerOps(r.Context(), app)
 		_, err, statusCode = tellerOps.AddByCash(tellerUser.QueryTeller().OnlyX(r.Context()), targetUser, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
@@ -98,7 +98,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		swdTeller := database.GetOrCreateSwdTeller(app, r.Context())
-		tellerOps := service.NewTellerOps(r.Context(), app.Client)
+		tellerOps := service.NewTellerOps(r.Context(), app)
 		_, err, statusCode = tellerOps.AddBySwd(swdTeller, usr, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)

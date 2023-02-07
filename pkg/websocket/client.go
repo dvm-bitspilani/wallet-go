@@ -7,6 +7,7 @@ import (
 )
 
 type ClientList map[*Client]bool
+type ClientIDList map[int]*Client
 
 type Client struct {
 	connection *websocket.Conn
@@ -22,9 +23,9 @@ func NewClient(conn *websocket.Conn, manager *Manager) *Client {
 	}
 }
 
-func (c *Client) readMessage() {
+func (c *Client) readMessage(clientId int) {
 	defer func() {
-		c.manager.removeClient(c)
+		c.manager.removeClient(c, clientId)
 	}()
 	for {
 		_, payload, err := c.connection.ReadMessage()
@@ -41,15 +42,15 @@ func (c *Client) readMessage() {
 			log.Printf("error marshalling message :%v\n", err)
 			break
 		}
-		if err := c.manager.routeEvent(request, c); err != nil {
-			log.Println("Error handling Message: ", err)
-		}
+		//if err := c.manager.routeEvent(request, c); err != nil {
+		//	log.Println("Error handling Message: ", err)
+		//}
 	}
 }
 
-func (c *Client) writeMessage() {
+func (c *Client) writeMessage(clientId int) {
 	defer func() {
-		c.manager.removeClient(c)
+		c.manager.removeClient(c, clientId)
 	}()
 
 	for {

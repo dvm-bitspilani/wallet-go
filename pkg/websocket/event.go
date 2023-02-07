@@ -3,7 +3,6 @@ package websocket
 import (
 	"encoding/json"
 	"fmt"
-	"golang.org/x/exp/rand"
 )
 
 type Event struct {
@@ -22,7 +21,7 @@ type UpdateBalanceEvent struct {
 	TotalBalance int `json:"total_balance"`
 }
 
-func UpdateBalanceHandler(e Event, c *Client) error {
+func UpdateBalanceHandler(e Event, c *Client, amount int) error {
 	//var BalanceEvent UpdateBalanceEvent
 	//if err := json.Unmarshal(e.Payload, &BalanceEvent); err != nil {
 	//	return fmt.Errorf("bad payload in request: %v", err)
@@ -30,7 +29,7 @@ func UpdateBalanceHandler(e Event, c *Client) error {
 	//fmt.Println(BalanceEvent.TotalBalance)
 	//return nil
 	var updateBalanceEvent UpdateBalanceEvent
-	updateBalanceEvent.TotalBalance = rand.Int()
+	updateBalanceEvent.TotalBalance = amount
 
 	data, err := json.Marshal(updateBalanceEvent)
 	if err != nil {
@@ -41,9 +40,10 @@ func UpdateBalanceHandler(e Event, c *Client) error {
 	outgoingEvent.Type = EventUpdateBalance
 	outgoingEvent.Payload = data
 
-	for client := range c.manager.clients {
-		client.egress <- outgoingEvent
-	}
+	c.egress <- outgoingEvent
+	//for client := range c.manager.Clients {
+	//	client.egress <- outgoingEvent
+	//}
 
 	return nil
 }
@@ -71,7 +71,7 @@ func UpdateOrderStatusHandler(e Event, c *Client) error {
 	outgoingEvent.Type = EventUpdateOrder
 	outgoingEvent.Payload = data
 
-	for client := range c.manager.clients {
+	for client := range c.manager.Clients {
 		client.egress <- outgoingEvent
 	}
 
