@@ -48,7 +48,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			return 0, err, 412
 		}
 	}
-	order.Update().SetStatus(newStatus).SaveX(r.ctx)
+	order = order.Update().SetStatus(newStatus).SaveX(r.ctx)
 	walletOps := NewWalletOps(r.ctx, r.app)
 	if order.Status == helpers.READY {
 		transaction := r.app.Client.Transactions.Create().
@@ -58,24 +58,23 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			SetSource(usr.QueryWallet().OnlyX(r.ctx)).
 			SetDestination(usr.QueryVendorSchema().QueryUser().QueryWallet().OnlyX(r.ctx)).
 			SaveX(r.ctx)
-		order.Update().SetTransaction(transaction).SetReadyTimestamp(time.Now()).SaveX(r.ctx)
+		order = order.Update().SetTransaction(transaction).SetReadyTimestamp(time.Now()).SaveX(r.ctx)
 		err, statusCode := walletOps.Add(usr.QueryWallet().OnlyX(r.ctx), order.Price, database.TRANSFER_BAL)
 		if err != nil {
 			return 0, err, statusCode
 		}
 	} else {
 		if order.Status == helpers.DECLINED {
-			order.Update().SetDeclinedTimestamp(time.Now()).SaveX(r.ctx)
+			order = order.Update().SetDeclinedTimestamp(time.Now()).SaveX(r.ctx)
 		} else if order.Status == helpers.FINISHED {
-			order.Update().SetFinishedTimestamp(time.Now()).SaveX(r.ctx)
+			order = order.Update().SetFinishedTimestamp(time.Now()).SaveX(r.ctx)
 		} else if order.Status == helpers.ACCEPTED {
-			order.Update().SetAcceptedTimestamp(time.Now()).SaveX(r.ctx)
+			order = order.Update().SetAcceptedTimestamp(time.Now()).SaveX(r.ctx)
 		} else if order.Status == helpers.READY {
-			order.Update().SetReadyTimestamp(time.Now()).SaveX(r.ctx)
+			order = order.Update().SetReadyTimestamp(time.Now()).SaveX(r.ctx)
 		}
 	}
-	// TODO:	update_order_status
-	realtime.UpdateOrderStatus(r.app.Manager, order.QueryShell().QueryWallet().QueryUser().OnlyX(r.ctx).ID, order.Status)
+	realtime.UpdateOrderStatus(r.app.Manager, order.QueryShell().QueryWallet().QueryUser().OnlyX(r.ctx).ID, order.ID, order.Status)
 	return int(order.Status), nil, 0 // not sure if this direct conversion works
 }
 
@@ -88,6 +87,7 @@ func (r *OrderOps) Decline(order *ent.Order) (error, int) {
 	}
 	order.Update().SetStatus(helpers.DECLINED).SaveX(r.ctx)
 	// TODO:	update_order_status
+	realtime.UpdateOrderStatus(r.app.Manager, order.QueryShell().QueryWallet().QueryUser().OnlyX(r.ctx).ID, order.ID, order.Status)
 	return nil, 0
 }
 

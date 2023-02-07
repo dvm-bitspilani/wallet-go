@@ -17,11 +17,10 @@ func UpdateBalance(m *websocket.Manager, userId int, balance int) {
 	}
 }
 
-func UpdateOrderStatus(m *websocket.Manager, userId int, status helpers.Status) {
+func UpdateOrderStatus(m *websocket.Manager, userId int, orderId int, status helpers.Status) {
 	client := m.ClientUserIDList[userId]
 	event := websocket.Event{}
-	log.Println(m.ClientUserIDList)
-	err := websocket.UpdateOrderStatusHandler(event, client, status)
+	err := websocket.UpdateOrderStatusHandler(event, client, orderId, status)
 	if err != nil {
 		return
 	}

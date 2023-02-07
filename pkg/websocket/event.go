@@ -50,10 +50,11 @@ func UpdateBalanceHandler(e Event, c *Client, amount int) error {
 }
 
 type UpdateOrderStatus struct {
-	Status string `json:"status"`
+	OrderId int    `json:"order_id"`
+	Status  string `json:"status"`
 }
 
-func UpdateOrderStatusHandler(e Event, c *Client, status helpers.Status) error {
+func UpdateOrderStatusHandler(e Event, c *Client, orderId int, status helpers.Status) error {
 	//var BalanceEvent UpdateBalanceEvent
 	//if err := json.Unmarshal(e.Payload, &BalanceEvent); err != nil {
 	//	return fmt.Errorf("bad payload in request: %v", err)
@@ -61,6 +62,7 @@ func UpdateOrderStatusHandler(e Event, c *Client, status helpers.Status) error {
 	//fmt.Println(BalanceEvent.TotalBalance)
 	//return nil
 	var updateOrderStatusEvent UpdateOrderStatus
+	updateOrderStatusEvent.OrderId = orderId
 	updateOrderStatusEvent.Status = status.String()
 
 	data, err := json.Marshal(updateOrderStatusEvent)
