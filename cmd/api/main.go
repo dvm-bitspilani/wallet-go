@@ -4,6 +4,7 @@ import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/version"
+	"dvm.wallet/harsh/pkg/websocket"
 	"flag"
 	"fmt"
 	"go.uber.org/zap"
@@ -45,12 +46,15 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 	}
 	defer client.Close()
 
+	manager := websocket.NewManager()
+
 	app := &config.Application{
 		Config:     cfg,
 		Client:     client,
 		Logger:     logger,
 		MainLogger: mainLogger,
 		StdLogger:  stdLogger,
+		Manager:    manager,
 	}
 	//ctx := context.Background()
 	//pass, err := password.Hash("harsh")

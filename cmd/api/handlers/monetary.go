@@ -58,7 +58,7 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		tellerOps := service.NewTellerOps(r.Context(), app.Client)
+		tellerOps := service.NewTellerOps(r.Context(), app)
 		_, err, statusCode = tellerOps.AddByCash(tellerUser.QueryTeller().OnlyX(r.Context()), targetUser, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
@@ -98,7 +98,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		swdTeller := database.GetOrCreateSwdTeller(app, r.Context())
-		tellerOps := service.NewTellerOps(r.Context(), app.Client)
+		tellerOps := service.NewTellerOps(r.Context(), app)
 		_, err, statusCode = tellerOps.AddBySwd(swdTeller, usr, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
@@ -155,7 +155,7 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 			}
 		}
 		srcUser := context_config.ContextGetAuthenticatedUser(r)
-		userOps := service.NewUserOps(r.Context(), app.Client)
+		userOps := service.NewUserOps(r.Context(), app)
 		_, err, statusCode := userOps.Transfer(srcUser, targetUser, input.Amount)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
@@ -227,7 +227,7 @@ func TransactionHistory(app *config.Application) func(w http.ResponseWriter, r *
 		transactions := usr.QueryTransactions().AllX(r.Context())
 
 		var txns []service.TransactionStruct
-		transactionOps := service.NewTransactionOps(r.Context(), app.Client)
+		transactionOps := service.NewTransactionOps(r.Context(), app)
 		for _, txn := range transactions {
 			txnStruct := transactionOps.ToDict(txn)
 			txns = append(txns, *txnStruct)

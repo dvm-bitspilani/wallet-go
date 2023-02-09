@@ -23,9 +23,6 @@ func routes(app *config.Application) http.Handler {
 	// Health Routes
 	mux.HandleFunc("/status", handlers.Status(app)).Methods("GET")
 
-	// For websockets
-	//mux.HandleFunc("/ws", helpers.WsEndpoint)
-
 	//mux.HandleFunc("/users", app.createUser).Methods("POST")
 
 	// Auth Routes
@@ -38,6 +35,9 @@ func routes(app *config.Application) http.Handler {
 	// using middlewares on our subroute
 	authenticatedRoutes.Use(requireAuthenticatedUser)
 	authenticatedRoutes.Use(disallowDisabledUser)
+
+	// For websocket
+	authenticatedRoutes.HandleFunc("/ws", app.Manager.ServeWs)
 
 	// Monetary Routes
 	authenticatedRoutes.HandleFunc("/monetary/add/cash", handlers.AddCash(app)).Methods("POST")

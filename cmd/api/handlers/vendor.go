@@ -34,17 +34,17 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 		//check what empty vars does here
 		if status == "" {
 			orders := vendorObj.QueryOrders().AllX(r.Context())
-			orderOps := service.NewOrderOps(r.Context(), app.Client)
+			orderOps := service.NewOrderOps(r.Context(), app)
 			var data []service.OrderStruct
 			for _, orderObj := range orders {
 				data = append(data, orderOps.ToDict(orderObj))
 			}
 			err := response.JSON(w, http.StatusOK, &data)
-			return
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
 			}
+			return
 		}
 		conversionMap := map[string]helpers.Status{
 			"pending":  helpers.PENDING,
@@ -54,7 +54,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 			"declined": helpers.DECLINED,
 		}
 		orders := vendorObj.QueryOrders().Where(order.StatusEQ(conversionMap[status])).AllX(r.Context())
-		orderOps := service.NewOrderOps(r.Context(), app.Client)
+		orderOps := service.NewOrderOps(r.Context(), app)
 		var data []service.OrderStruct
 		for _, orderObj := range orders {
 			data = append(data, orderOps.ToDict(orderObj))
@@ -357,7 +357,7 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			return
 		}
 
-		orderOps := service.NewOrderOps(r.Context(), app.Client)
+		orderOps := service.NewOrderOps(r.Context(), app)
 		_, err, statusCode := orderOps.ChangeStatus(orderObj, helpers.FromInt(input.NewStatus), usr)
 		if err != nil {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
@@ -393,7 +393,7 @@ func DeclineOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Order %d not found", orderId), nil, app)
 			return
 		}
-		orderOps := service.NewOrderOps(r.Context(), app.Client)
+		orderOps := service.NewOrderOps(r.Context(), app)
 
 		err, statusCode := orderOps.Decline(orderObj)
 		if err != nil {

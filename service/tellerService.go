@@ -2,20 +2,24 @@ package service
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
 )
 
 type TellerOps struct {
-	ctx    context.Context
-	client *ent.Client
+	ctx context.Context
+	//client *ent.Client
+	app *config.Application
 }
 
-func NewTellerOps(ctx context.Context, client *ent.Client) *TellerOps {
+func NewTellerOps(ctx context.Context, app *config.Application) *TellerOps {
 	return &TellerOps{
-		ctx:    ctx,
-		client: client,
+		ctx: ctx,
+		app: app,
+		//client: client,
 	}
 }
 
@@ -32,12 +36,13 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 		//err := exceptions.Exception{Message: "cash additions to BITSian wallets is not allowed", Status: 403}
 		return nil, err, 403 // 403
 	}
-	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_CASH, tellerUsr, user, r.ctx, r.client)
+	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_CASH, tellerUsr, user, r.ctx, r.app)
 	if err != nil {
 		return nil, err, statusCode
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	// TODO:	update_balance
+	walletOps := NewWalletOps(r.ctx, r.app)
+	realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
 	return transaction, nil, 0
 }
 
@@ -55,12 +60,13 @@ func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*e
 		//err := exceptions.Exception{Message: "Only the SWD teller may add money via SWD", Status: 403}
 		return nil, err, 403
 	}
-	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_SWD, tellerUsr, user, r.ctx, r.client)
+	transaction, err, statusCode := GenerateAndPerform(amount, helpers.ADD_SWD, tellerUsr, user, r.ctx, r.app)
 	if err != nil {
 		return nil, err, statusCode
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	//TODO:		update_balance
+	walletOps := NewWalletOps(r.ctx, r.app)
+	realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
 	return transaction, nil, 0
 }
 

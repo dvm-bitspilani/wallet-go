@@ -31,7 +31,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		if r.Method == "GET" {
-			orderShellOps := service.NewOrderShellOps(r.Context(), app.Client)
+			orderShellOps := service.NewOrderShellOps(r.Context(), app)
 			if shellId == 0 { // since initialized ints have 0 as their default value
 				var data []service.OrderShellStruct
 				for _, shell := range usr.QueryWallet().QueryShells().Order(ent.Asc(ordershell.FieldTimestamp)).AllX(r.Context()) {
@@ -81,7 +81,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				errors.ErrorMessage(w, r, 403, "Only bitsians or participants may place orders", nil, app)
 				return
 			}
-			userOps := service.NewUserOps(r.Context(), app.Client)
+			userOps := service.NewUserOps(r.Context(), app)
 			data, err, statusCode := userOps.PlaceOrder(usr, input.Vendor)
 			if err != nil {
 				errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
@@ -116,7 +116,7 @@ func MakeOtpSeen(app *config.Application) func(http.ResponseWriter, *http.Reques
 			errors.ErrorMessage(w, r, 403, "User did not place this order", nil, app)
 			return
 		}
-		OrderOps := service.NewOrderOps(r.Context(), app.Client)
+		OrderOps := service.NewOrderOps(r.Context(), app)
 		if validator.In(orderObj.Status, helpers.FINISHED, helpers.READY) {
 			OrderOps.MakeOtpSeen(orderObj)
 			err := response.JSON(w, http.StatusOK, "OTP has been successfully seen!")

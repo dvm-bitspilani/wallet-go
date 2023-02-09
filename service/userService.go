@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/item"
 	vendor "dvm.wallet/harsh/ent/vendorschema"
@@ -14,14 +16,14 @@ import (
 )
 
 type UserOps struct {
-	ctx    context.Context
-	client *ent.Client
+	ctx context.Context
+	app *config.Application
 }
 
-func NewUserOps(ctx context.Context, client *ent.Client) *UserOps {
+func NewUserOps(ctx context.Context, app *config.Application) *UserOps {
 	return &UserOps{
-		ctx:    ctx,
-		client: client,
+		ctx: ctx,
+		app: app,
 	}
 }
 
@@ -49,7 +51,7 @@ func (r *UserOps) GetOrCreateWallet(user *ent.User) (*ent.Wallet, error) {
 	}
 	wallet, err := user.QueryWallet().Only(r.ctx)
 	if err != nil {
-		wallet = r.client.Wallet.Create().SetUser(user).SaveX(r.ctx)
+		wallet = r.app.Client.Wallet.Create().SetUser(user).SaveX(r.ctx)
 	}
 	return wallet, nil
 }
@@ -79,7 +81,7 @@ func (r *UserOps) Transfer(user *ent.User, target *ent.User, amount int) (*ent.T
 		}
 	}
 	if validOccupationPair {
-		transaction, err, statusCode := GenerateAndPerform(amount, helpers.TRANSFER, user, target, r.ctx, r.client)
+		transaction, err, statusCode := GenerateAndPerform(amount, helpers.TRANSFER, user, target, r.ctx, r.app)
 		if err != nil {
 			return nil, err, statusCode
 		}
@@ -103,7 +105,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 	}
 	// TODO:	refactor this so we're not running two for loops
 	for _, vendorStruct := range orderList {
-		vendorObj, err := r.client.VendorSchema.Query().Where(vendor.ID(vendorStruct.VendorId)).Only(r.ctx)
+		vendorObj, err := r.app.Client.VendorSchema.Query().Where(vendor.ID(vendorStruct.VendorId)).Only(r.ctx)
 		if err != nil {
 			return nil, fmt.Errorf("vendor with ID %d does not exist", vendorStruct.VendorId), 403 //404
 		}
@@ -115,7 +117,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 		}
 
 		for _, itemStruct := range vendorStruct.Order {
-			itemObj, err := r.client.Item.Query().Where(item.ID(itemStruct.ItemId)).Only(r.ctx)
+			itemObj, err := r.app.Client.Item.Query().Where(item.ID(itemStruct.ItemId)).Only(r.ctx)
 			if err != nil {
 				return nil, fmt.Errorf("item with ID %d does not exist", itemStruct.ItemId), 404
 			}
@@ -133,25 +135,25 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 			totalPrice += itemObj.BasePrice * itemStruct.Quantity
 		}
 	}
-	walletOps := NewWalletOps(r.ctx, r.client)
+	walletOps := NewWalletOps(r.ctx, r.app)
 	if totalPrice > walletOps.Balance(usr.QueryWallet().OnlyX(r.ctx)) {
 		return nil, fmt.Errorf("order price: %d, current balance: %d", totalPrice, walletOps.Balance(usr.QueryWallet().OnlyX(r.ctx))), 412
 	}
 
 	// creation and saving phase
-	shell := r.client.OrderShell.Create().SetWallet(usr.QueryWallet().OnlyX(r.ctx)).SetPrice(totalPrice).SaveX(r.ctx)
-	orderOps := NewOrderOps(r.ctx, r.client)
+	shell := r.app.Client.OrderShell.Create().SetWallet(usr.QueryWallet().OnlyX(r.ctx)).SetPrice(totalPrice).SaveX(r.ctx)
+	orderOps := NewOrderOps(r.ctx, r.app)
 	for _, vendorStruct := range orderList {
-		vendorObj := r.client.VendorSchema.Query().Where(vendor.ID(vendorStruct.VendorId)).OnlyX(r.ctx)
-		order := r.client.Order.Create().
+		vendorObj := r.app.Client.VendorSchema.Query().Where(vendor.ID(vendorStruct.VendorId)).OnlyX(r.ctx)
+		order := r.app.Client.Order.Create().
 			SetShell(shell).
 			SetVendorSchema(vendorObj).
 			SetStatus(helpers.PENDING).
 			SaveX(r.ctx)
 
 		for _, itemStruct := range vendorStruct.Order {
-			itemObj := r.client.Item.Query().Where(item.ID(itemStruct.ItemId)).OnlyX(r.ctx)
-			r.client.ItemInstance.Create().
+			itemObj := r.app.Client.Item.Query().Where(item.ID(itemStruct.ItemId)).OnlyX(r.ctx)
+			r.app.Client.ItemInstance.Create().
 				SetItem(itemObj).
 				SetQuantity(itemStruct.Quantity).
 				SetOrder(order).
@@ -165,6 +167,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 		return nil, err, statusCode
 	}
 	//TODO:		put_orders
-	OrderShellOps := NewOrderShellOps(r.ctx, r.client)
+	realtime.PutUserOrders(r.app.Manager, usr)
+	OrderShellOps := NewOrderShellOps(r.ctx, r.app)
 	return OrderShellOps.ToDict(shell), nil, 0
 }

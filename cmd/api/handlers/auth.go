@@ -3,6 +3,7 @@ package handlers
 import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/cmd/api/errors"
+	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/user"
 	"dvm.wallet/harsh/internal/helpers"
@@ -156,7 +157,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 
 		if category == 1 {
-			userOps := service.NewUserOps(r.Context(), app.Client)
+			userOps := service.NewUserOps(r.Context(), app)
 			_, err := userOps.GetOrCreateWallet(userObject)
 			if err != nil {
 				errors.ErrorMessage(w, r, 500, "Something went wrong and we were unable to create the user's wallet", nil, app)
@@ -182,6 +183,12 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				// 			implement put_vendor_orders
 				//			(Also check if its really required)
 				app.Logger.Debugf("PUT_VENDOR_ORDERS")
+				orderArray := userObject.QueryVendorSchema().QueryOrders().AllX(r.Context())
+				orderIdArray := make([]int, len(orderArray))
+				for _, orderObj := range orderArray {
+					orderIdArray = append(orderIdArray, orderObj.ID)
+				}
+				realtime.PutVendorOrders(app.Manager, userObject.ID, orderIdArray)
 			} else if userObject.Occupation == "teller" {
 				// TODO:	implement websocket based
 				//			put_teller_node here

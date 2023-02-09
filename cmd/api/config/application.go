@@ -2,6 +2,7 @@ package config
 
 import (
 	"dvm.wallet/harsh/ent"
+	"dvm.wallet/harsh/pkg/websocket"
 	"go.uber.org/zap"
 	"log"
 )
@@ -32,4 +33,5 @@ type Application struct {
 	Logger     *zap.SugaredLogger
 	MainLogger *zap.Logger
 	StdLogger  *log.Logger
+	Manager    *websocket.Manager
 }
