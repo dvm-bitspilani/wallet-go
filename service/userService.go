@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/item"
 	vendor "dvm.wallet/harsh/ent/vendorschema"
@@ -166,6 +167,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 		return nil, err, statusCode
 	}
 	//TODO:		put_orders
+	realtime.PutUserOrders(r.app.Manager, usr)
 	OrderShellOps := NewOrderShellOps(r.ctx, r.app)
 	return OrderShellOps.ToDict(shell), nil, 0
 }

@@ -14,8 +14,10 @@ type Event struct {
 type EventHandler func(event Event, c *Client) error
 
 const (
-	EventUpdateBalance = "update_balance"
-	EventUpdateOrder   = "update_order_status"
+	EventUpdateBalance   = "update_balance"
+	EventUpdateOrder     = "update_order_status"
+	EventPutVendorOrders = "put_vendor_orders"
+	EventPutUserOrder    = "put_user_order"
 )
 
 type UpdateBalanceEvent struct {
@@ -74,9 +76,51 @@ func UpdateOrderStatusHandler(e Event, c *Client, orderId int, status helpers.St
 	outgoingEvent.Type = EventUpdateOrder
 	outgoingEvent.Payload = data
 
-	for client := range c.manager.Clients {
-		client.egress <- outgoingEvent
+	c.egress <- outgoingEvent
+
+	return nil
+}
+
+type PutVendorOrders struct {
+	OrderIdArray []int `json:"order_ids"`
+}
+
+func PutVendorOrdersHandler(e Event, c *Client, orderIdArray []int) error {
+	var putOrdersEvent PutVendorOrders
+	putOrdersEvent.OrderIdArray = orderIdArray
+
+	data, err := json.Marshal(putOrdersEvent)
+	if err != nil {
+		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
+
+	var outgoingEvent Event
+	outgoingEvent.Type = EventPutVendorOrders
+	outgoingEvent.Payload = data
+
+	c.egress <- outgoingEvent
+
+	return nil
+}
+
+type PutUserOrder struct {
+	UserOrderIdArray []int `json:"user_order_id_array"`
+}
+
+func PutUserOrderHandler(e Event, c *Client, orderIdArray []int) error {
+	var putUserOrderEvent PutUserOrder
+	putUserOrderEvent.UserOrderIdArray = orderIdArray
+
+	data, err := json.Marshal(putUserOrderEvent)
+	if err != nil {
+		return fmt.Errorf("failed to marshal broadcast message: %v", err)
+	}
+
+	var outgoingEvent Event
+	outgoingEvent.Type = EventPutUserOrder
+	outgoingEvent.Payload = data
+
+	c.egress <- outgoingEvent
 
 	return nil
 }
