@@ -105,13 +105,13 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 					switch userObject.Occupation {
 					// no bitsian here because they're never gonna login through password auth,
 					// but it's probably worth it to handle that case some time in the future.
-					case "participant":
+					case helpers.PARTICIPANT:
 						category = 1
-					case "vendor":
+					case helpers.VENDOR:
 						category = 2
-					case "teller":
+					case helpers.TELLER:
 						category = 2
-					case "manager":
+					case helpers.MANAGER:
 						category = 3
 					default:
 						errors.ErrorMessage(w, r, 403, "Undeterminable Occupation", nil, app)
@@ -178,7 +178,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				"AuthenticationTokenExpiry": jwt["AuthenticationTokenExpiry"],
 				"user_id":                   strconv.Itoa(userObject.ID),
 			}
-			if userObject.Occupation == "VendorSchema" {
+			if userObject.Occupation == helpers.VENDOR {
 				// TODO:	websocket implementation here
 				// 			implement put_vendor_orders
 				//			(Also check if its really required)

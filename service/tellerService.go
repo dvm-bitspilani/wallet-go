@@ -31,7 +31,7 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 		//err := exceptions.Exception{Message: fmt.Sprintf("teller %s is disabled", teller.Edges.User.Username), Status: 403}
 		return nil, err, 403 // 403
 	}
-	if tellerUsr.Occupation == "bitsian" {
+	if tellerUsr.Occupation == helpers.BITSIAN {
 		err := fmt.Errorf("cash additions to BITSian wallets is not allowed")
 		//err := exceptions.Exception{Message: "cash additions to BITSian wallets is not allowed", Status: 403}
 		return nil, err, 403 // 403
@@ -49,13 +49,13 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*ent.Transactions, error, int) {
 	var statusCode int
 
-	if user.Occupation != "bitsian" {
+	if user.Occupation != helpers.BITSIAN {
 		err := fmt.Errorf("only bitsians can add money via SWD")
 		//err := exceptions.Exception{Message: "Only bitsians can add money via SWD", Status: 403}
 		return nil, err, 403
 	}
 	tellerUsr := teller.QueryUser().OnlyX(r.ctx)
-	if tellerUsr.Username != "SWD" {
+	if tellerUsr.Username != helpers.SWD_USERNAME {
 		err := fmt.Errorf("only the SWD teller may add money via SWD")
 		//err := exceptions.Exception{Message: "Only the SWD teller may add money via SWD", Status: 403}
 		return nil, err, 403

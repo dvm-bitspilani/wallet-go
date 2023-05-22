@@ -39,3 +39,16 @@ type OrderActionVendorStruct struct {
 	VendorId int                      `json:"vendor_id"`
 	Order    []OrderActionOrderStruct `json:"order"`
 }
+
+const (
+	// User Occupation string constants that are saved in the database
+	VENDOR      = "vendorSchema"
+	TELLER      = "teller"
+	PARTICIPANT = "participant"
+	MANAGER     = "manager"
+	BITSIAN     = "bitsian"
+
+	// Other constants
+	SWD_USERNAME = "SWD"
+	SWD_PASSWORD = "wtfgivememymoneyback"
+)

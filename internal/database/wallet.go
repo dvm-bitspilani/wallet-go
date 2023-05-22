@@ -20,11 +20,11 @@ const (
 // GetValidTransactionPairs check with seniors if this is the combo they're looking for
 func GetValidTransactionPairs() [][]string {
 	return [][]string{
-		{"bitsian", "bitsian"},
-		{"bitsian", "VendorSchema"},
-		{"participant", "participant"},
-		{"participant", "VendorSchema"},
-		{"teller", "participant"},
+		{helpers.BITSIAN, helpers.BITSIAN},
+		{helpers.BITSIAN, helpers.VENDOR},
+		{helpers.PARTICIPANT, helpers.PARTICIPANT},
+		{helpers.PARTICIPANT, helpers.VENDOR},
+		{helpers.TELLER, helpers.PARTICIPANT},
 	}
 }
 
@@ -34,11 +34,11 @@ func GetOrCreateSwdTeller(app *config.Application, ctx context.Context) *ent.Tel
 	swdUser, err := app.Client.User.Query().Where(user.Username("SWD")).Only(ctx)
 	if err != nil {
 		swdUser = app.Client.User.Create().
-			SetUsername("SWD").
-			SetPassword("swdgivememymoneybackwtf"). // TODO:	write a random password generator and add it to user's default password func
+			SetUsername(helpers.SWD_USERNAME).
+			SetPassword(helpers.SWD_PASSWORD). // TODO:	write a random password generator and add it to user's default password func
 			SetName("SWD").
 			SetEmail("swd@example.com").
-			SetOccupation("teller").
+			SetOccupation(helpers.TELLER).
 			SaveX(ctx)
 	}
 	swdTeller, err = swdUser.QueryTeller().Only(ctx)

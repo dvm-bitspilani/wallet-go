@@ -24,7 +24,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		if usr.Occupation != "vendor" {
+		if usr.Occupation != helpers.VENDOR {
 			errors.ErrorMessage(w, r, 403, "Requesting user is not a VendorSchema", nil, app)
 			return
 		}
