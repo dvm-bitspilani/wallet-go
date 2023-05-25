@@ -96,7 +96,7 @@ func (r *UserOps) Transfer(user *ent.User, target *ent.User, amount int) (*ent.T
 func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendorStruct) (*OrderShellStruct, error, int) {
 	var statusCode int
 
-	if !validator.In(usr.Occupation, "bitsian", "participant") {
+	if !validator.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT) {
 		return nil, errors.New("only bitsians and participants may place orders"), 403
 	}
 	var totalPrice int

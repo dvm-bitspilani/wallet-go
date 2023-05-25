@@ -77,7 +77,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				return
 			}
 
-			if !(validator.In(usr.Occupation, "bitsian", "participant")) {
+			if !(validator.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT)) {
 				errors.ErrorMessage(w, r, 403, "Only bitsians or participants may place orders", nil, app)
 				return
 			}

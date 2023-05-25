@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-// 	TODO:	Implement disallow disabled users middleware
-
 // We take advantage of factory functions here to create middlewares for us. This helps us to inject dependencies while
 // following the middleware signature constraints.
 

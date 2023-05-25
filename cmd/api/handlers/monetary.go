@@ -7,6 +7,7 @@ import (
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/user"
 	"dvm.wallet/harsh/internal/database"
+	"dvm.wallet/harsh/internal/helpers"
 	"dvm.wallet/harsh/internal/request"
 	"dvm.wallet/harsh/internal/response"
 	"dvm.wallet/harsh/service"
@@ -42,7 +43,7 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if tellerUser.Occupation != "teller" {
+		if tellerUser.Occupation != helpers.TELLER {
 			tellerUser.Update().SetDisabled(true)
 			errors.ErrorMessage(w, r, 403, "Requesting user must be a teller", nil, app)
 			return
@@ -85,7 +86,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if usr.Occupation != "bitsian" {
+		if usr.Occupation != helpers.BITSIAN {
 			usr.Update().SetDisabled(true).SaveX(r.Context())
 			errors.ErrorMessage(w, r, 403, "Non bitsians cannot add money via. SWD. You have been disabled", nil, app)
 			return

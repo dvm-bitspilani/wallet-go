@@ -9,7 +9,6 @@ import (
 )
 
 func UpdateBalance(m *websocket.Manager, userId int, balance int) {
-
 	client := m.ClientUserIDList[userId]
 	event := websocket.Event{}
 	err := websocket.UpdateBalanceHandler(event, client, balance)

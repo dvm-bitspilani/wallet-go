@@ -67,7 +67,7 @@ func GenerateAndPerform(amt int, kind helpers.Txn_type, srcUser *ent.User, dstUs
 		}
 	}
 	if !validOccupationPair {
-		if !(srcUser.Username == "SWD" && dstUser.Occupation == "bitsian") {
+		if !(srcUser.Username == helpers.SWD_USERNAME && dstUser.Occupation == helpers.BITSIAN) {
 			err := fmt.Errorf("transaction forbidden: %s", occupationPair)
 			//err := exceptions.Exception{Message: fmt.Sprintf("Transaction forbidden: %s", occupationPair), Status: 403}
 			return nil, err, 403 // 403
