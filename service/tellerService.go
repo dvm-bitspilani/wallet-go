@@ -42,7 +42,8 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
 	walletOps := NewWalletOps(r.ctx, r.app)
-	realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
+	//realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
+	realtime.UpdateBalance(r.app, &r.ctx, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
 	return transaction, nil, 0
 }
 
@@ -66,7 +67,8 @@ func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*e
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
 	walletOps := NewWalletOps(r.ctx, r.app)
-	realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
+	//realtime.UpdateBalance(r.app.Manager, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
+	realtime.UpdateBalance(r.app, &r.ctx, user.ID, walletOps.Balance(user.QueryWallet().OnlyX(r.ctx)))
 	return transaction, nil, 0
 }
 
