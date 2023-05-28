@@ -4,9 +4,9 @@ import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/cmd/api/errors"
 	"dvm.wallet/harsh/cmd/api/handlers"
-	"net/http"
-
+	"dvm.wallet/harsh/pkg/sse"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 func routes(app *config.Application) http.Handler {
@@ -37,7 +37,10 @@ func routes(app *config.Application) http.Handler {
 	authenticatedRoutes.Use(disallowDisabledUser)
 
 	// For websocket
-	authenticatedRoutes.HandleFunc("/ws", app.Manager.ServeWs)
+	//authenticatedRoutes.HandleFunc("/ws", app.Manager.ServeWs)
+
+	// For SSE
+	authenticatedRoutes.HandleFunc("/sse", sse.HandleSSE(app))
 
 	// Monetary Routes
 	authenticatedRoutes.HandleFunc("/monetary/add/cash", handlers.AddCash(app)).Methods("POST")

@@ -3,6 +3,7 @@ package config
 import (
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/pkg/websocket"
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 	"log"
 )
@@ -34,4 +35,6 @@ type Application struct {
 	MainLogger *zap.Logger
 	StdLogger  *log.Logger
 	Manager    *websocket.Manager
+	Rdb        *redis.Client
+	PubSub     *redis.PubSub
 }

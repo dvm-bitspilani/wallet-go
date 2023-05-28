@@ -4,6 +4,7 @@ import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/version"
+	"dvm.wallet/harsh/pkg/sse"
 	"dvm.wallet/harsh/pkg/websocket"
 	"flag"
 	"fmt"
@@ -44,7 +45,26 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+
+	rdb, pubSub := sse.InitSSE()
+	defer func() {
+		// close entGo db connection
+		err := client.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Close the Redis connection
+		err = rdb.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = pubSub.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	manager := websocket.NewManager()
 
@@ -55,10 +75,21 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 		MainLogger: mainLogger,
 		StdLogger:  stdLogger,
 		Manager:    manager,
+		Rdb:        rdb,
+		PubSub:     pubSub,
 	}
+	//app.Logger.Debugf(password.Hash("harsh"))
 	//ctx := context.Background()
 	//pass, err := password.Hash("harsh")
-	//u, _ := client.User.Query().Where(user.Username("vendorman")).Only(ctx)
+	//client.User.Create().
+	//	SetUsername("harsh").
+	//	SetEmail("harsh@gmail.com").
+	//	SetUsername("f20211725").
+	//	SetEmail("f20211725@pilani.bits-pilani.ac.in").
+	//	SetPassword(pass).
+	//	SetName("Harsh Singh").
+	//	Save(ctx)
+
 	//app.Logger.Debugf(client.VendorSchema.Create().SetUser(u).SetClosed(false).SetName("vendy boi").SaveX(ctx).String())
 	return serveHTTP(app)
 }
