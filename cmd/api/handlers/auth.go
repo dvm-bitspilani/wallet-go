@@ -179,16 +179,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				"user_id":                   strconv.Itoa(userObject.ID),
 			}
 			if userObject.Occupation == helpers.VENDOR {
-				// TODO:	websocket implementation here
-				// 			implement put_vendor_orders
-				//			(Also check if its really required)
-				app.Logger.Debugf("PUT_VENDOR_ORDERS")
-				orderArray := userObject.QueryVendorSchema().QueryOrders().AllX(r.Context())
-				orderIdArray := make([]int, len(orderArray))
-				for _, orderObj := range orderArray {
-					orderIdArray = append(orderIdArray, orderObj.ID)
-				}
-				realtime.PutVendorOrders(app.Manager, userObject.ID, orderIdArray)
+				realtime.PutVendorOrders(userObject.QueryVendorSchema().OnlyIDX(r.Context()), app, app.FirestoreClient)
 			} else if userObject.Occupation == helpers.TELLER {
 				// TODO:	implement websocket based
 				//			put_teller_node here

@@ -166,8 +166,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 	if err != nil {
 		return nil, err, statusCode
 	}
-	//TODO:		put_orders
-	realtime.PutUserOrders(r.app.Manager, usr)
+	realtime.PutUserOrders(usr.ID, r.app, r.app.FirestoreClient)
 	OrderShellOps := NewOrderShellOps(r.ctx, r.app)
 	return OrderShellOps.ToDict(shell), nil, 0
 }

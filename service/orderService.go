@@ -74,7 +74,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			order = order.Update().SetReadyTimestamp(time.Now()).SaveX(r.ctx)
 		}
 	}
-	realtime.UpdateOrderStatus(r.app.Manager, order.QueryShell().QueryWallet().QueryUser().OnlyX(r.ctx).ID, order.ID, order.Status)
+	realtime.UpdateOrderStatus(order.ID, r.app, r.app.FirestoreClient)
 	return int(order.Status), nil, 0 // not sure if this direct conversion works
 }
 
@@ -86,7 +86,7 @@ func (r *OrderOps) Decline(order *ent.Order) (error, int) {
 		return errors.New("vendor has already accepted the order, cannot decline now"), 412
 	}
 	order.Update().SetStatus(helpers.DECLINED).SaveX(r.ctx)
-	realtime.UpdateOrderStatus(r.app.Manager, order.QueryShell().QueryWallet().QueryUser().OnlyX(r.ctx).ID, order.ID, order.Status)
+	realtime.UpdateOrderStatus(order.ID, r.app, r.app.FirestoreClient)
 	return nil, 0
 }
 
@@ -125,7 +125,7 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 	}
 	return OrderStruct{
 		OrderId:     order.ID,
-		Shell:       order.QueryShell().OnlyX(r.ctx).ID,
+		Shell:       order.QueryShell().OnlyIDX(r.ctx),
 		Vendor:      vendor,
 		Items:       items,
 		Transaction: txnId,

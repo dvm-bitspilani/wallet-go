@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cloud.google.com/go/firestore"
 	"dvm.wallet/harsh/ent"
 	"go.uber.org/zap"
 	"log"
@@ -23,13 +24,15 @@ type Config struct {
 	Jwt struct {
 		SecretKey string
 	}
-	Version bool
+	Version            bool
+	FirebaseConfigPath string
 }
 
 type Application struct {
-	Config     Config
-	Client     *ent.Client
-	Logger     *zap.SugaredLogger
-	MainLogger *zap.Logger
-	StdLogger  *log.Logger
+	Config          Config
+	Client          *ent.Client
+	Logger          *zap.SugaredLogger
+	MainLogger      *zap.Logger
+	StdLogger       *log.Logger
+	FirestoreClient *firestore.Client
 }

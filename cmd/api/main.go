@@ -2,6 +2,7 @@ package main
 
 import (
 	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/version"
 	"flag"
@@ -31,6 +32,7 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 	flag.BoolVar(&cfg.Db.Automigrate, "db-automigrate", true, "run migrations on startup")
 	flag.StringVar(&cfg.Jwt.SecretKey, "jwt-secret-key", "rbztegymvi2bxjdh2tftkvd7b44z5akg", "secret key for JWT authentication")
 	flag.BoolVar(&cfg.Version, "version", false, "display version and exit")
+	flag.StringVar(&cfg.FirebaseConfigPath, "firebase-config", "internal/firebase-keyconfig.json", "firebase config file path")
 
 	flag.Parse()
 
@@ -45,13 +47,19 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 	}
 	defer client.Close()
 
+	firebaseClient, err := realtime.NewFirestoreClient(cfg.FirebaseConfigPath)
+	if err != nil {
+		return err
+	}
+	defer firebaseClient.Close()
+
 	app := &config.Application{
-		Config:     cfg,
-		Client:     client,
-		Logger:     logger,
-		MainLogger: mainLogger,
-		StdLogger:  stdLogger,
-		Manager:    manager,
+		Config:          cfg,
+		Client:          client,
+		Logger:          logger,
+		MainLogger:      mainLogger,
+		StdLogger:       stdLogger,
+		FirestoreClient: firebaseClient,
 	}
 	//ctx := context.Background()
 	//pass, err := password.Hash("harsh")

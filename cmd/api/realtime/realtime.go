@@ -17,19 +17,19 @@ import (
 )
 
 // NewFirestoreClient Creates and returns a new firestore client
-func NewFirestoreClient(app *config.Application) *firestore.Client {
+func NewFirestoreClient(filePath string) (*firestore.Client, error) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("internal/firebase-keyconfig.json")
+	sa := option.WithCredentialsFile(filePath)
 	clientApp, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		app.Logger.Errorf("Error occuered while creating firebase app %s", err)
+		return nil, err
 	}
 	db, err := clientApp.Firestore(ctx)
 	if err != nil {
-		app.Logger.Errorf("Error occuered while creating firestore client %s", err)
+		return nil, err
 	}
 	//defer db.Close()
-	return db
+	return db, nil
 }
 
 // PutUserOrders The functionality of uploading user Orders to Firebase is baked in tightly within this function.
