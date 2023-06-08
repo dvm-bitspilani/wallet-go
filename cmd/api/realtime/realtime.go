@@ -6,6 +6,9 @@ import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent/user"
+	"dvm.wallet/harsh/internal/helpers"
+	"dvm.wallet/harsh/internal/validator"
+	"dvm.wallet/harsh/service"
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
 	"strconv"
@@ -54,5 +57,39 @@ func PutUserOrders(userId int, app *config.Application, db *firestore.Client) {
 	_, err := batch.Commit(ctx)
 	if err != nil {
 		return
+	}
+}
+
+func UpdateBalance(userId int, balance int, app *config.Application, db *firestore.Client) {
+	ctx := context.Background()
+	usr := app.Client.User.Query().Where(user.ID(userId)).OnlyX(ctx)
+
+	if usr.Occupation == helpers.VENDOR {
+		if usr.Username == helpers.PROFSHOW_USERNAME {
+			return
+		}
+		balance_ref := db.Collection("vendors").Doc(strconv.Itoa(usr.ID))
+		balance_ref.Set(ctx, map[string]interface{}{
+			"earnings": service.CalculateEarnings(usr.QueryVendorSchema().OnlyX(ctx)),
+		}, firestore.MergeAll)
+
+	} else if usr.Occupation == helpers.TELLER {
+		balance_ref := db.Collection("tellers").Doc(strconv.Itoa(usr.ID))
+		balance_ref.Set(ctx, map[string]interface{}{
+			"cash_collected": usr.QueryTeller().OnlyX(ctx).CashCollected,
+		}, firestore.MergeAll)
+
+	} else if validator.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT) {
+		balance_ref := db.Collection("users").Doc(strconv.Itoa(usr.ID))
+		userOps := service.NewUserOps(ctx, app)
+		wallet, err := userOps.GetOrCreateWallet(usr)
+		if err != nil {
+			app.Logger.Errorf("Could not create wallet for user: %s", err)
+		}
+		walletOps := service.NewWalletOps(ctx, app)
+		balance_ref.Set(ctx, map[string]interface{}{
+			"total_balance":      walletOps.Balance(wallet),
+			"refundable_balance": wallet.Swd,
+		}, firestore.MergeAll)
 	}
 }

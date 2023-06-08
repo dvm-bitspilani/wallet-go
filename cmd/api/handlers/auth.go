@@ -189,7 +189,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 					orderIdArray = append(orderIdArray, orderObj.ID)
 				}
 				realtime.PutVendorOrders(app.Manager, userObject.ID, orderIdArray)
-			} else if userObject.Occupation == "teller" {
+			} else if userObject.Occupation == helpers.TELLER {
 				// TODO:	implement websocket based
 				//			put_teller_node here
 				app.Logger.Debugf("PUT_TELLER_NODE")

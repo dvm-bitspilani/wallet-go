@@ -48,7 +48,11 @@ const (
 	MANAGER     = "manager"
 	BITSIAN     = "bitsian"
 
-	// Other constants
+	// SWD USER
 	SWD_USERNAME = "SWD"
 	SWD_PASSWORD = "wtfgivememymoneyback"
+
+	// PROF SHOW USER
+	PROFSHOW_USERNAME = "PROF SHOWS"
+	PROFSHOW_PASSWORD = "arbitsmybeloved"
 )
