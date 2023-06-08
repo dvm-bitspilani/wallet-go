@@ -36,9 +36,6 @@ func routes(app *config.Application) http.Handler {
 	authenticatedRoutes.Use(requireAuthenticatedUser)
 	authenticatedRoutes.Use(disallowDisabledUser)
 
-	// For websocket
-	authenticatedRoutes.HandleFunc("/ws", app.Manager.ServeWs)
-
 	// Monetary Routes
 	authenticatedRoutes.HandleFunc("/monetary/add/cash", handlers.AddCash(app)).Methods("POST")
 	authenticatedRoutes.HandleFunc("/monetary/add/swd", handlers.AddSwd(app)).Methods("POST")
