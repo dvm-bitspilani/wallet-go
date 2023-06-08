@@ -7,6 +7,7 @@ import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/ent/order"
 	"dvm.wallet/harsh/ent/user"
+	"dvm.wallet/harsh/ent/vendorschema"
 	"dvm.wallet/harsh/internal/helpers"
 	"dvm.wallet/harsh/internal/validator"
 	"dvm.wallet/harsh/service"
@@ -49,8 +50,8 @@ func PutUserOrders(userId int, app *config.Application, db *firestore.Client) {
 			batch.Set(orderRef, map[string]interface{}{
 				"status":       order.Status,
 				"userid":       usr.ID,
-				"vendorid":     order.QueryShell().QueryOrders().QueryVendorSchema().OnlyX(ctx).ID,
-				"vendoruserid": order.QueryShell().QueryWallet().QueryUser().OnlyX(ctx).ID,
+				"vendorid":     order.QueryShell().QueryOrders().QueryVendorSchema().OnlyIDX(ctx),
+				"vendoruserid": order.QueryShell().QueryWallet().QueryUser().OnlyIDX(ctx),
 				"otp_seen":     order.OtpSeen,
 			}, firestore.MergeAll)
 		}
@@ -95,11 +96,33 @@ func UpdateBalance(userId int, app *config.Application, db *firestore.Client) {
 	}
 }
 
-func UpdateOrderStatus(orderId int, status helpers.Status, app *config.Application, db *firestore.Client) {
+func UpdateOrderStatus(orderId int, app *config.Application, db *firestore.Client) {
 	ctx := context.Background()
 	orderObj := app.Client.Order.Query().Where(order.ID(orderId)).OnlyX(ctx)
 	orderRef := db.Collection("orders").Doc(strconv.Itoa(orderObj.ID))
 	orderRef.Set(ctx, map[string]interface{}{
 		"status": orderObj.Status,
 	}, firestore.MergeAll)
+}
+
+func PutVendorOrders(vendorId int, app *config.Application, db *firestore.Client) {
+	ctx := context.Background()
+	batch := db.Batch()
+	vendor := app.Client.VendorSchema.Query().Where(vendorschema.ID(vendorId)).OnlyX(ctx)
+
+	for key, order := range vendor.QueryOrders().AllX(ctx) {
+		if key%498 == 0 {
+			_, err := batch.Commit(ctx)
+			if err != nil {
+				app.Logger.Errorf("Could not commit batch: %s", err)
+			}
+		}
+		orderRef := db.Collection("orders").Doc(strconv.Itoa(order.ID))
+		batch.Set(orderRef, map[string]interface{}{
+			"status":   order.Status,
+			"userid":   order.QueryShell().QueryWallet().QueryUser().OnlyIDX(ctx),
+			"vendorid": order.QueryVendorSchema().OnlyIDX(ctx),
+			"otp_seen": order.OtpSeen,
+		})
+	}
 }
