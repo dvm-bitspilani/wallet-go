@@ -138,5 +138,5 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 
 func (r *OrderOps) MakeOtpSeen(order *ent.Order) {
 	order.Update().SetOtpSeen(true).SaveX(r.ctx)
-	// TODO:	update_otp_seen
+	realtime.UpdateOtpSeen(order.ID, r.app, r.app.FirestoreClient)
 }

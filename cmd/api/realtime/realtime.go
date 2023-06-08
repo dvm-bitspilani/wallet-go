@@ -126,3 +126,12 @@ func PutVendorOrders(vendorId int, app *config.Application, db *firestore.Client
 		})
 	}
 }
+
+func UpdateOtpSeen(orderID int, app *config.Application, db *firestore.Client) {
+	ctx := context.Background()
+	orderObj := app.Client.Order.Query().Where(order.ID(orderID)).OnlyX(ctx)
+	orderRef := db.Collection("orders").Doc(strconv.Itoa(orderObj.ID))
+	orderRef.Set(ctx, map[string]interface{}{
+		"otp_seen": orderObj.OtpSeen,
+	}, firestore.MergeAll)
+}
