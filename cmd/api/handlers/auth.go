@@ -3,14 +3,9 @@ package handlers
 import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/cmd/api/errors"
-	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/user"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/password"
-	"dvm.wallet/harsh/internal/request"
-	"dvm.wallet/harsh/internal/response"
-	"dvm.wallet/harsh/internal/validator"
 	"dvm.wallet/harsh/service"
 	"fmt"
 	"google.golang.org/api/idtoken"
@@ -62,13 +57,13 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var input struct {
-			Username  string              `json:"username"`
-			Password  string              `json:"password"`
-			IdToken   string              `json:"id_token"`
-			Validator validator.Validator `json:"-"`
+			Username  string            `json:"username"`
+			Password  string            `json:"password"`
+			IdToken   string            `json:"id_token"`
+			Validator helpers.Validator `json:"-"`
 		}
 
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -96,7 +91,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				return
 			}
 			if userObject != nil {
-				passwordMatches, err := password.Matches(input.Password, userObject.Password)
+				passwordMatches, err := helpers.Matches(input.Password, userObject.Password)
 				if err != nil {
 					errors.ServerError(w, r, err, app)
 					return
@@ -128,7 +123,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				errors.InvalidCredentials(w, r, app)
 				return
 			}
-			if validator.NotIn(payload.Claims["iss"].(string), "https://accounts.google.com", "https://accounts.google.com") {
+			if helpers.NotIn(payload.Claims["iss"].(string), "https://accounts.google.com", "https://accounts.google.com") {
 				errors.ErrorMessage(w, r, 401, "Not a valid google account", nil, app)
 			}
 			email := payload.Claims["email"].(string)
@@ -179,7 +174,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				"user_id":                   strconv.Itoa(userObject.ID),
 			}
 			if userObject.Occupation == helpers.VENDOR {
-				realtime.PutVendorOrders(userObject.QueryVendorSchema().OnlyIDX(r.Context()), app, app.FirestoreClient)
+				service.PutVendorOrders(userObject.QueryVendorSchema().OnlyIDX(r.Context()), app, app.FirestoreClient)
 			} else if userObject.Occupation == helpers.TELLER {
 				// TODO:	implement websocket based
 				//			put_teller_node here
@@ -196,7 +191,7 @@ func Login(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		err = response.JSON(w, http.StatusOK, jwtPayload)
+		err = helpers.JSON(w, http.StatusOK, jwtPayload)
 
 	}
 }

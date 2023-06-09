@@ -1,4 +1,4 @@
-package validator
+package helpers
 
 import (
 	"net/url"
@@ -29,7 +29,7 @@ func Between[T constraints.Ordered](value, min, max T) bool {
 	return value >= min && value <= max
 }
 
-func Matches(value string, rx *regexp.Regexp) bool {
+func StringMatches(value string, rx *regexp.Regexp) bool {
 	return rx.MatchString(value)
 }
 

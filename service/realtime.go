@@ -1,5 +1,5 @@
 // Package realtime: responsible for handling firestore related functionality,
-package realtime
+package service
 
 import (
 	"cloud.google.com/go/firestore"
@@ -9,8 +9,6 @@ import (
 	"dvm.wallet/harsh/ent/user"
 	"dvm.wallet/harsh/ent/vendorschema"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/validator"
-	"dvm.wallet/harsh/service"
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
 	"strconv"
@@ -72,7 +70,7 @@ func UpdateBalance(userId int, app *config.Application, db *firestore.Client) {
 		}
 		balanceRef := db.Collection("vendors").Doc(strconv.Itoa(usr.ID))
 		balanceRef.Set(ctx, map[string]interface{}{
-			"earnings": service.CalculateEarnings(usr.QueryVendorSchema().OnlyX(ctx)),
+			"earnings": CalculateEarnings(usr.QueryVendorSchema().OnlyX(ctx)),
 		}, firestore.MergeAll)
 
 	} else if usr.Occupation == helpers.TELLER {
@@ -81,14 +79,14 @@ func UpdateBalance(userId int, app *config.Application, db *firestore.Client) {
 			"cash_collected": usr.QueryTeller().OnlyX(ctx).CashCollected,
 		}, firestore.MergeAll)
 
-	} else if validator.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT) {
+	} else if helpers.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT) {
 		balanceRef := db.Collection("users").Doc(strconv.Itoa(usr.ID))
-		userOps := service.NewUserOps(ctx, app)
+		userOps := NewUserOps(ctx, app)
 		wallet, err := userOps.GetOrCreateWallet(usr)
 		if err != nil {
 			app.Logger.Errorf("Could not create wallet for user: %s", err)
 		}
-		walletOps := service.NewWalletOps(ctx, app)
+		walletOps := NewWalletOps(ctx, app)
 		balanceRef.Set(ctx, map[string]interface{}{
 			"total_balance":      walletOps.Balance(wallet),
 			"refundable_balance": wallet.Swd,

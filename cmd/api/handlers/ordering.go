@@ -8,9 +8,6 @@ import (
 	"dvm.wallet/harsh/ent/order"
 	"dvm.wallet/harsh/ent/ordershell"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/request"
-	"dvm.wallet/harsh/internal/response"
-	"dvm.wallet/harsh/internal/validator"
 	"dvm.wallet/harsh/service"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -37,7 +34,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				for _, shell := range usr.QueryWallet().QueryShells().Order(ent.Asc(ordershell.FieldTimestamp)).AllX(r.Context()) {
 					data = append(data, *orderShellOps.ToDict(shell))
 				}
-				err := response.JSON(w, http.StatusOK, &data)
+				err := helpers.JSON(w, http.StatusOK, &data)
 				if err != nil {
 					errors.ServerError(w, r, err, app)
 					return
@@ -49,7 +46,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 					return
 				}
 				data := orderShellOps.ToDict(shell)
-				err = response.JSON(w, http.StatusOK, &data)
+				err = helpers.JSON(w, http.StatusOK, &data)
 				if err != nil {
 					errors.ServerError(w, r, err, app)
 					return
@@ -71,13 +68,13 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				Vendor []helpers.OrderActionVendorStruct `json:"user_order"`
 			}
 
-			err := request.DecodeJSON(w, r, &input)
+			err := helpers.DecodeJSON(w, r, &input)
 			if err != nil {
 				errors.BadRequest(w, r, err, app)
 				return
 			}
 
-			if !(validator.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT)) {
+			if !(helpers.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT)) {
 				errors.ErrorMessage(w, r, 403, "Only bitsians or participants may place orders", nil, app)
 				return
 			}
@@ -87,7 +84,7 @@ func Order(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 				return
 			}
-			err = response.JSON(w, http.StatusOK, &data)
+			err = helpers.JSON(w, http.StatusOK, &data)
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
@@ -101,7 +98,7 @@ func MakeOtpSeen(app *config.Application) func(http.ResponseWriter, *http.Reques
 		var input struct {
 			OrderId int `json:"order_id"`
 		}
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -117,15 +114,15 @@ func MakeOtpSeen(app *config.Application) func(http.ResponseWriter, *http.Reques
 			return
 		}
 		OrderOps := service.NewOrderOps(r.Context(), app)
-		if validator.In(orderObj.Status, helpers.FINISHED, helpers.READY) {
+		if helpers.In(orderObj.Status, helpers.FINISHED, helpers.READY) {
 			OrderOps.MakeOtpSeen(orderObj)
-			err := response.JSON(w, http.StatusOK, "OTP has been successfully seen!")
+			err := helpers.JSON(w, http.StatusOK, "OTP has been successfully seen!")
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
 			}
 		} else {
-			err := response.JSON(w, http.StatusPreconditionFailed, "Order is not yet Ready")
+			err := helpers.JSON(w, http.StatusPreconditionFailed, "Order is not yet Ready")
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return

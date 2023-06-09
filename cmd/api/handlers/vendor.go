@@ -9,9 +9,6 @@ import (
 	"dvm.wallet/harsh/ent/user"
 	vendor "dvm.wallet/harsh/ent/vendorschema"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/request"
-	"dvm.wallet/harsh/internal/response"
-	"dvm.wallet/harsh/internal/validator"
 	"dvm.wallet/harsh/service"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -39,7 +36,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 			for _, orderObj := range orders {
 				data = append(data, orderOps.ToDict(orderObj))
 			}
-			err := response.JSON(w, http.StatusOK, &data)
+			err := helpers.JSON(w, http.StatusOK, &data)
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
@@ -59,7 +56,7 @@ func GetVendorOrders(app *config.Application) func(http.ResponseWriter, *http.Re
 		for _, orderObj := range orders {
 			data = append(data, orderOps.ToDict(orderObj))
 		}
-		err := response.JSON(w, http.StatusOK, &data)
+		err := helpers.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -136,7 +133,7 @@ func GetOrderDetails(app *config.Application) func(http.ResponseWriter, *http.Re
 				return
 			}
 		}
-		err = response.JSON(w, http.StatusOK, &orderDetails)
+		err = helpers.JSON(w, http.StatusOK, &orderDetails)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -150,7 +147,7 @@ func GetOrderIdArrayDetails(app *config.Application) func(http.ResponseWriter, *
 		var input struct {
 			OrderIdList []int `json:"order_id_list"`
 		}
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.ErrorMessage(w, r, 400, "request body is not correct", nil, app)
 			return
@@ -217,7 +214,7 @@ func GetOrderIdArrayDetails(app *config.Application) func(http.ResponseWriter, *
 					return
 				}
 			}
-			err = response.JSON(w, http.StatusOK, &orderDetails)
+			err = helpers.JSON(w, http.StatusOK, &orderDetails)
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
@@ -280,7 +277,7 @@ func GetDayListEarnings(app *config.Application) func(http.ResponseWriter, *http
 		var input struct {
 			DateList []time.Time `json:"date_list"`
 		}
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -313,7 +310,7 @@ func GetDayListEarnings(app *config.Application) func(http.ResponseWriter, *http
 			output.DayEarnings = dayEarnings
 			output.TotalEarnings = totalEarnings
 			output.Orders = orderIdList
-			err = response.JSON(w, http.StatusOK, &output)
+			err = helpers.JSON(w, http.StatusOK, &output)
 			if err != nil {
 				errors.ServerError(w, r, err, app)
 				return
@@ -334,7 +331,7 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 		var input struct {
 			NewStatus int `json:"new_status"`
 		}
-		err = request.DecodeJSON(w, r, &input)
+		err = helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -352,7 +349,7 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			errors.ErrorMessage(w, r, 404, fmt.Sprintf("Order %d not found", orderId), nil, app)
 			return
 		}
-		if !validator.In(input.NewStatus-int(orderObj.Status), 0, 1) {
+		if !helpers.In(input.NewStatus-int(orderObj.Status), 0, 1) {
 			errors.ErrorMessage(w, r, 403, "Invalid action", nil, app)
 			return
 		}
@@ -364,7 +361,7 @@ func AdvanceOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			return
 		}
 		//TODO:	Disable vendors if they're trying to access orders that do not belong to them
-		err = response.JSON(w, http.StatusOK, "Successfully Updated!")
+		err = helpers.JSON(w, http.StatusOK, "Successfully Updated!")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -400,7 +397,7 @@ func DeclineOrders(app *config.Application) func(http.ResponseWriter, *http.Requ
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		err = response.JSON(w, http.StatusOK, "Successfully Declined!")
+		err = helpers.JSON(w, http.StatusOK, "Successfully Declined!")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -423,7 +420,7 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 				NewAvailabilityState bool `json:"new_availability_state"`
 			} `json:"item_id_list"`
 		}
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -444,7 +441,7 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 				errors.ErrorMessage(w, r, 404, fmt.Sprintf("Item with ID %d does not exist", itemObject.ID), nil, app)
 				return
 			}
-			if !validator.In(itemObject.ID, vendorItemsIdArray...) {
+			if !helpers.In(itemObject.ID, vendorItemsIdArray...) {
 				usr.Update().SetDisabled(true).SaveX(r.Context())
 				errors.ErrorMessage(w, r, 403, "Vendor has been disabled for trying to toggle the availibility of an item not belonging to them", nil, app)
 				return
@@ -465,7 +462,7 @@ func ToggleAvailability(app *config.Application) func(http.ResponseWriter, *http
 				availabilityData.Items = append(availabilityData.Items, updatedItem)
 			}
 		}
-		err = response.JSON(w, http.StatusOK, &availabilityData)
+		err = helpers.JSON(w, http.StatusOK, &availabilityData)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -517,7 +514,7 @@ func GetMenu(app *config.Application) func(http.ResponseWriter, *http.Request) {
 				IsAvailable: itemObj.Available,
 			})
 		}
-		err = response.JSON(w, http.StatusOK, &data)
+		err = helpers.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -577,7 +574,7 @@ func GetAllVendorsWithMenu(app *config.Application) func(http.ResponseWriter, *h
 				Address:     vendorObj.Address,
 			})
 		}
-		err := response.JSON(w, http.StatusOK, &data)
+		err := helpers.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -652,7 +649,7 @@ func GetVendor(app *config.Application) func(http.ResponseWriter, *http.Request)
 			Menu:        menu,
 			Address:     vendorObject.Address,
 		}
-		err = response.JSON(w, http.StatusOK, &data)
+		err = helpers.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return

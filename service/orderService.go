@@ -3,11 +3,9 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
-	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/validator"
 	"errors"
 	"fmt"
 	"time"
@@ -38,7 +36,7 @@ func NewOrderOps(ctx context.Context, app *config.Application) *OrderOps {
 }
 
 func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr *ent.User) (int, error, int) {
-	if validator.In(order.Status, helpers.DECLINED, helpers.FINISHED) {
+	if helpers.In(order.Status, helpers.DECLINED, helpers.FINISHED) {
 		err := fmt.Errorf("maximum/final status achieved")
 		return 0, err, 412
 	}
@@ -74,7 +72,7 @@ func (r *OrderOps) ChangeStatus(order *ent.Order, newStatus helpers.Status, usr 
 			order = order.Update().SetReadyTimestamp(time.Now()).SaveX(r.ctx)
 		}
 	}
-	realtime.UpdateOrderStatus(order.ID, r.app, r.app.FirestoreClient)
+	UpdateOrderStatus(order.ID, r.app, r.app.FirestoreClient)
 	return int(order.Status), nil, 0 // not sure if this direct conversion works
 }
 
@@ -82,11 +80,11 @@ func (r *OrderOps) Decline(order *ent.Order) (error, int) {
 	if order.Status == helpers.DECLINED {
 		return errors.New("vendor has already declined the order, cannot re-decline an order"), 412
 	}
-	if validator.In(order.Status, helpers.ACCEPTED, helpers.READY, helpers.FINISHED) {
+	if helpers.In(order.Status, helpers.ACCEPTED, helpers.READY, helpers.FINISHED) {
 		return errors.New("vendor has already accepted the order, cannot decline now"), 412
 	}
 	order.Update().SetStatus(helpers.DECLINED).SaveX(r.ctx)
-	realtime.UpdateOrderStatus(order.ID, r.app, r.app.FirestoreClient)
+	UpdateOrderStatus(order.ID, r.app, r.app.FirestoreClient)
 	return nil, 0
 }
 
@@ -138,5 +136,5 @@ func (r *OrderOps) ToDict(order *ent.Order) OrderStruct {
 
 func (r *OrderOps) MakeOtpSeen(order *ent.Order) {
 	order.Update().SetOtpSeen(true).SaveX(r.ctx)
-	realtime.UpdateOtpSeen(order.ID, r.app, r.app.FirestoreClient)
+	UpdateOtpSeen(order.ID, r.app, r.app.FirestoreClient)
 }

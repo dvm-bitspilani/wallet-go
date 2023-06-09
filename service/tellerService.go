@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
-	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
@@ -41,7 +40,7 @@ func (r *TellerOps) AddByCash(teller *ent.Teller, user *ent.User, amount int) (*
 		return nil, err, statusCode
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	realtime.UpdateBalance(user.ID, r.app, r.app.FirestoreClient)
+	UpdateBalance(user.ID, r.app, r.app.FirestoreClient)
 	return transaction, nil, 0
 }
 
@@ -64,7 +63,7 @@ func (r *TellerOps) AddBySwd(teller *ent.Teller, user *ent.User, amount int) (*e
 		return nil, err, statusCode
 	}
 	teller.Update().AddCashCollected(amount).SaveX(r.ctx)
-	realtime.UpdateBalance(user.ID, r.app, r.app.FirestoreClient)
+	UpdateBalance(user.ID, r.app, r.app.FirestoreClient)
 	return transaction, nil, 0
 }
 

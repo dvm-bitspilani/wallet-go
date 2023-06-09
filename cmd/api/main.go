@@ -2,9 +2,9 @@ package main
 
 import (
 	"dvm.wallet/harsh/cmd/api/config"
-	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/version"
+	"dvm.wallet/harsh/service"
 	"flag"
 	"fmt"
 	"go.uber.org/zap"
@@ -47,7 +47,7 @@ func run(logger *zap.SugaredLogger, stdLogger *log.Logger, mainLogger *zap.Logge
 	}
 	defer client.Close()
 
-	firebaseClient, err := realtime.NewFirestoreClient(cfg.FirebaseConfigPath)
+	firebaseClient, err := service.NewFirestoreClient(cfg.FirebaseConfigPath)
 	if err != nil {
 		return err
 	}

@@ -2,12 +2,10 @@ package errors
 
 import (
 	"dvm.wallet/harsh/cmd/api/config"
+	"dvm.wallet/harsh/internal/helpers"
 	"fmt"
 	"net/http"
 	"strings"
-
-	"dvm.wallet/harsh/internal/response"
-	"dvm.wallet/harsh/internal/validator"
 )
 
 // I have changed the signatures of lot of these functions to inject dependencies, in cases where this signature needs
@@ -16,7 +14,7 @@ import (
 func ErrorMessage(w http.ResponseWriter, r *http.Request, status int, message string, headers http.Header, app *config.Application) {
 	message = strings.ToUpper(message[:1]) + message[1:]
 
-	err := response.JSONWithHeaders(w, status, map[string]string{"Error": message}, headers)
+	err := helpers.JSONWithHeaders(w, status, map[string]string{"Error": message}, headers)
 	if err != nil {
 		app.Logger.Errorf(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -48,8 +46,8 @@ func BadRequest(w http.ResponseWriter, r *http.Request, err error, app *config.A
 	ErrorMessage(w, r, http.StatusBadRequest, err.Error(), nil, app)
 }
 
-func FailedValidation(w http.ResponseWriter, r *http.Request, v validator.Validator, app *config.Application) {
-	err := response.JSON(w, http.StatusUnprocessableEntity, v)
+func FailedValidation(w http.ResponseWriter, r *http.Request, v helpers.Validator, app *config.Application) {
+	err := helpers.JSON(w, http.StatusUnprocessableEntity, v)
 	if err != nil {
 		ServerError(w, r, err, app)
 	}

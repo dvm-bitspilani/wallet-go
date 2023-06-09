@@ -3,13 +3,11 @@ package service
 import (
 	"context"
 	"dvm.wallet/harsh/cmd/api/config"
-	"dvm.wallet/harsh/cmd/api/realtime"
 	"dvm.wallet/harsh/ent"
 	"dvm.wallet/harsh/ent/item"
 	vendor "dvm.wallet/harsh/ent/vendorschema"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/validator"
 	"errors"
 	"fmt"
 	"reflect"
@@ -96,7 +94,7 @@ func (r *UserOps) Transfer(user *ent.User, target *ent.User, amount int) (*ent.T
 func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendorStruct) (*OrderShellStruct, error, int) {
 	var statusCode int
 
-	if !validator.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT) {
+	if !helpers.In(usr.Occupation, helpers.BITSIAN, helpers.PARTICIPANT) {
 		return nil, errors.New("only bitsians and participants may place orders"), 403
 	}
 	var totalPrice int
@@ -166,7 +164,7 @@ func (r *UserOps) PlaceOrder(usr *ent.User, orderList []helpers.OrderActionVendo
 	if err != nil {
 		return nil, err, statusCode
 	}
-	realtime.PutUserOrders(usr.ID, r.app, r.app.FirestoreClient)
+	PutUserOrders(usr.ID, r.app, r.app.FirestoreClient)
 	OrderShellOps := NewOrderShellOps(r.ctx, r.app)
 	return OrderShellOps.ToDict(shell), nil, 0
 }

@@ -3,7 +3,7 @@ package handlers
 import (
 	"dvm.wallet/harsh/cmd/api/config"
 	"dvm.wallet/harsh/cmd/api/errors"
-	"dvm.wallet/harsh/internal/response"
+	"dvm.wallet/harsh/internal/helpers"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ func Status(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			"Status": "OK",
 		}
 
-		err := response.JSON(w, http.StatusOK, data)
+		err := helpers.JSON(w, http.StatusOK, data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 		}

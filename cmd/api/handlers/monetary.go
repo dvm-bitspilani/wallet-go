@@ -8,8 +8,6 @@ import (
 	"dvm.wallet/harsh/ent/user"
 	"dvm.wallet/harsh/internal/database"
 	"dvm.wallet/harsh/internal/helpers"
-	"dvm.wallet/harsh/internal/request"
-	"dvm.wallet/harsh/internal/response"
 	"dvm.wallet/harsh/service"
 	"fmt"
 	"github.com/google/uuid"
@@ -27,7 +25,7 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 		}
 		tellerUser := context_config.ContextGetAuthenticatedUser(r)
 
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -65,7 +63,7 @@ func AddCash(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		err = response.JSON(w, http.StatusOK, "Funds added to wallet successfully!")
+		err = helpers.JSON(w, http.StatusOK, "Funds added to wallet successfully!")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -80,7 +78,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			Amount int `json:"amount"`
 		}
 		usr := context_config.ContextGetAuthenticatedUser(r)
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 		if err != nil {
 			errors.BadRequest(w, r, err, app)
 			return
@@ -105,7 +103,7 @@ func AddSwd(app *config.Application) func(http.ResponseWriter, *http.Request) {
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		err = response.JSON(w, http.StatusOK, "Funds added to wallet successfully")
+		err = helpers.JSON(w, http.StatusOK, "Funds added to wallet successfully")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -123,7 +121,7 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 		var transferMode int
 		var targetUser *ent.User
 
-		err := request.DecodeJSON(w, r, &input)
+		err := helpers.DecodeJSON(w, r, &input)
 
 		if input.Amount == 0 {
 			errors.ErrorMessage(w, r, 400, "Amount cannot be 0", nil, app)
@@ -162,7 +160,7 @@ func Transfer(app *config.Application) func(http.ResponseWriter, *http.Request) 
 			errors.ErrorMessage(w, r, statusCode, err.Error(), nil, app)
 			return
 		}
-		err = response.JSON(w, http.StatusOK, "Funds transferred from wallet successfully")
+		err = helpers.JSON(w, http.StatusOK, "Funds transferred from wallet successfully")
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 		}
@@ -182,7 +180,7 @@ func GetUserQR(app *config.Application) func(http.ResponseWriter, *http.Request)
 		data.UserId = usr.ID
 		data.QrCode = usr.QrCode
 
-		err := response.JSON(w, http.StatusOK, &data)
+		err := helpers.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 		}
@@ -208,7 +206,7 @@ func GetBalance(app *config.Application) func(http.ResponseWriter, *http.Request
 			Pg:        wallet.Pg,
 			Transfers: wallet.Transfers,
 		}
-		err = response.JSON(w, http.StatusOK, &data)
+		err = helpers.JSON(w, http.StatusOK, &data)
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
@@ -234,7 +232,7 @@ func TransactionHistory(app *config.Application) func(w http.ResponseWriter, r *
 			txns = append(txns, *txnStruct)
 		}
 
-		err = response.JSON(w, http.StatusOK, &txns) // does this even work, need to verify
+		err = helpers.JSON(w, http.StatusOK, &txns) // does this even work, need to verify
 		if err != nil {
 			errors.ServerError(w, r, err, app)
 			return
